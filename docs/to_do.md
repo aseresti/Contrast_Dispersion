@@ -13,6 +13,7 @@ to dos:
  - update readme with proper abstract information
  - add proper docs:
     - Background
+    - Our Avection Diffusion pipeline validation against the theoretical solution
     - method (Latex?)
     - results (either md or excel)
     - discussion
