@@ -17,3 +17,10 @@ to dos:
     - method (Latex?)
     - results (either md or excel)
     - discussion
+
+Friday Sept 29 TODOs:
+   - Straight Pipe Segmentation and Meshing
+   - Generate Oasis Mesh
+   - Submit CFD for a Re of 500 (Check Re of Parastou's)
+   - Advection Diffusion for the laminar flow
+   - fft func
