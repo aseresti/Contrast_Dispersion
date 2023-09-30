@@ -19,8 +19,14 @@ to dos:
     - discussion
 
 Friday Sept 29 TODOs:
-   - Straight Pipe Segmentation and Meshing
-   - Generate Oasis Mesh
-   - Submit CFD for a Re of 500 (Check Re of Parastou's)
+   - Straight Pipe Segmentation and Meshing: **Done**
+   - Generate Oasis Mesh **Done**
+   - Submit CFD for a Re of 500 (Check Re of Parastou's) **Submitted**
+   - Advection Diffusion for the laminar flow 
+   - fft func
+
+Sat Sep 30 TODOs:
    - Advection Diffusion for the laminar flow
    - fft func
+   - Parastou's method results for data, Results excel sheet
+   
