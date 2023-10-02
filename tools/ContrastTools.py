@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from scipy.fft import fft, ifft, fftfreq
 from math import pi
 from scipy.signal import butter,filtfilt
+import glob
+from utilities import ReadXDMFFile
 
 def MAFilter(input, window_length):
     FilteredSignal = np.zeros(np.size(input)-window_length)
@@ -62,3 +64,13 @@ def lowpass(data, cutoff, fs, order):
     b, a = butter(order, normal_cutoff, btype='low', analog=False)
     y = filtfilt(b, a, data)
     return y
+
+def ReadResults(foldername,NFiles):
+    filenames = glob.glob(f'{foldername}/*.xdmf')
+    filenames = sorted(filenames)
+    N = len(filenames)
+    counter = 0
+    for i in range(0,N,int(N/NFiles)):
+        counter += 1
+        MeshDict = {counter:ReadXDMFFile(filenames[i])}
+    return MeshDict
