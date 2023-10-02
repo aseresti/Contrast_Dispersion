@@ -3,6 +3,9 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 import matplotlib.pyplot as plt
+from scipy.fft import fft, ifft, fftfreq
+from math import pi
+from scipy.signal import butter,filtfilt
 
 def MAFilter(input, window_length):
     FilteredSignal = np.zeros(np.size(input)-window_length)
@@ -45,3 +48,17 @@ def ModelPoly(x,array):
     plt.scatter(x, array)
     plt.plot(x, pred, color = 'red')
     return plt, dc_dx, d2c_dx2
+
+def Modelfft(x,x_step,array):
+    fx = fftfreq(x.shape[0], d = x_step)
+    array_fft = np.array(fft(array))
+    darray = 1j*2*pi*fx*array_fft
+    d2array = 1j*2*pi*fx*darray
+    return array_fft, darray, d2array
+
+def lowpass(data, cutoff, fs, order):
+    nyq = 0.5*fs
+    normal_cutoff = cutoff/nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    y = filtfilt(b, a, data)
+    return y
