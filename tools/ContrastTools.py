@@ -71,6 +71,6 @@ def ReadResults(foldername,NFiles):
     N = len(filenames)
     counter = 0
     for i in range(0,N,int(N/NFiles)):
-        counter += 1
         MeshDict = {counter:ReadXDMFFile(filenames[i])}
+        counter += 1
     return MeshDict
