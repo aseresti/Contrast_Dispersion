@@ -1,5 +1,9 @@
 import numpy as np
 import vtk
+import sys
+import os
+path = os.path.abspath("./")
+sys.path.append(path)
 from tools.utilities import vtk_to_numpy, ReadXDMFFile
 import os
 import glob
