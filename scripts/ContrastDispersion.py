@@ -1,6 +1,6 @@
 import numpy as np
 import vtk
-from utilities import vtk_to_numpy, ReadXDMFFile
+from tools.utilities import vtk_to_numpy, ReadXDMFFile
 import os
 import glob
 import argparse
@@ -68,6 +68,7 @@ class ContrastDispersion():
 		plt.show()
 		velocity = dc_dt/dc_dx
 		print(dc_dt,dc_dx,abs(velocity))
+		return dc_dt,dc_dx,velocity
 
 if __name__=="__main__":
 	parser = argparse.ArgumentParser(description="This script implement the contrast dispersion pipeline")
