@@ -22,6 +22,7 @@ class ContrastMain():
         MeshPath = f'{foldernames[0]}/results_AdvectionDiffusion/*.xdmf'
         Mesh = ReadXDMFFile(glob.glob(MeshPath)[0])
         Diameter = Mesh.GetBounds()[3]-Mesh.GetBounds()[2]
+        print(Diameter)
         viscosity = 0.04
         dcdx = []
         dcdt = []
@@ -29,14 +30,16 @@ class ContrastMain():
         RealVelocity = []
         Re = []
         for folder in foldernames:
-            self.Args.InputFolder = f'{folder}/Results_AdvectionDiffusion/*.xdmf'
+            print(folder)
+            self.Args.InputFolder = f'{folder}/results_AdvectionDiffusion'
             [dc_dt,dc_dx,velocity_] = ContrastDispersion(self.Args).main()
             dcdt.append(dc_dt)
             dcdx.append(dc_dx)
             velocity.append(velocity_)
-            Re_ = re.findall('r\d+', folder)
+            Re_ = re.findall(r'\d+',folder)
+            Re_ = Re_[1]                           
             Re.append(Re_)
-            RealVelocity.append(viscosity*Re/Diameter)
+            RealVelocity.append(viscosity*int(Re_)/Diameter)
         df = pd.DataFrame({'Simulation Re #': Re, 'Assigned Velocity': RealVelocity, 'Velocity': velocity})
         df.to_csv(f'{self.Args.OutputPath}')
 if __name__=="__main__":
