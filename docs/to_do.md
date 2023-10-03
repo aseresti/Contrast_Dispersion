@@ -29,4 +29,10 @@ Sat Sep 30 TODOs:
    - Advection Diffusion for the laminar flow
    - fft func
    - Parastou's method results for data, Results excel sheet
-   
+
+
+Wed Oct 04 TODOs:
+   - find the issue with velocity
+   - filter model
+   - full resolution contrast dynamics
+   - fix CFD for straight pipe
