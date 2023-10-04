@@ -27,8 +27,8 @@ Friday Sept 29 TODOs:
 
 Sat Sep 30 TODOs:
    - Advection Diffusion for the laminar flow
-   - fft func
-   - Parastou's method results for data, Results excel sheet
+   - fft func **Done**
+   - Parastou's method results for data, Results excel sheet **Done**
 
 
 Wed Oct 04 TODOs:
