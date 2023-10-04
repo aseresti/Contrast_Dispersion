@@ -6,7 +6,7 @@ path = os.path.abspath("./")
 sys.path.append(path)
 from tools.utilities import vtk_to_numpy, ReadXDMFFile
 import os
-import glob
+from tools.ContrastTools import get_order
 import argparse
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
@@ -15,8 +15,7 @@ class ContrastDispersion():
 		self.Args = args
 	def main(self):
 		# Get the input Folder and take 10 timesteps with constant intervals turn them to vtu file and read them
-		filenames = glob.glob(f'{self.Args.InputFolder}/*.xdmf')
-		filenames = sorted(filenames)
+		filenames = get_order(f'{self.Args.InputFolder}','xdmf')
 		N = len(filenames)
 		NFiles = 10
 		Mesh = {i:ReadXDMFFile(filenames[i]) for i in range(0,N,int(N/NFiles))}
@@ -33,6 +32,7 @@ class ContrastDispersion():
 		slicer.SetImplicitFunction(plane)
 		time_array = []
 		for i in range(0,N,int(N/NFiles)):
+			print(filenames[i])
 			slicer.SetInputData(Mesh[i])
 			slicer.Update()
 			array_ = slicer.GetOutput().GetPointData().GetArray('f_22')
@@ -62,14 +62,18 @@ class ContrastDispersion():
 		pred = model.predict(t.reshape(-1,1))
 		plt.scatter(t.reshape(-1,1), time_array.reshape(-1,1))
 		plt.plot(t.reshape(-1,1), pred.reshape(-1,1), color = 'red')
-		plt.show()
+		plt.show(block = False)
+		plt.pause(0.5)
+		plt.close()
 		dc_dt = model.coef_[0][0]
 		model.fit(x.reshape(-1,1),np.array(space_array).reshape(-1,1))
 		dc_dx = model.coef_[0][0]
 		pred = model.predict(x.reshape(-1,1))
 		plt.scatter(x.reshape(-1,1), space_array.reshape(-1,1))
 		plt.plot(x.reshape(-1,1), pred.reshape(-1,1), color = 'red')
-		plt.show()
+		plt.show(block = False)
+		plt.pause(0.5)
+		plt.close()
 		velocity = dc_dt/dc_dx
 		print(dc_dt,dc_dx,abs(velocity))
 		return dc_dt,dc_dx,velocity
