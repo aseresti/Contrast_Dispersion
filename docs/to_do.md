@@ -32,7 +32,7 @@ Sat Sep 30 TODOs:
 
 
 Wed Oct 04 TODOs:
-   - find the issue with velocity
+   - find the issue with velocity **Done**
    - filter model
    - full resolution contrast dynamics
-   - fix CFD for straight pipe
+   - fix CFD for straight pipe **Done** 
