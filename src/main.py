@@ -12,6 +12,7 @@ path = os.path.abspath("./")
 sys.path.append(path)
 from tools.utilities import ReadXDMFFile
 from tools.ContrastTools import get_order
+from math import pi
 import re
 import argparse
 from scripts.ContrastDispersion import ContrastDispersion
@@ -24,6 +25,7 @@ class ContrastMain():
         MeshPath = f'{foldernames[0]}/results_AdvectionDiffusion/*.xdmf'
         Mesh = ReadXDMFFile(glob.glob(MeshPath)[0])
         Diameter = Mesh.GetBounds()[3]-Mesh.GetBounds()[2]
+        Area = pi*(Diameter/2)**2
         #print(Diameter)
         viscosity = 0.04
         dcdx = []
@@ -42,7 +44,8 @@ class ContrastMain():
             Re_ = Re_[1]                           
             Re.append(Re_)
             RealVelocity.append(viscosity*int(Re_)/Diameter)
-        df = pd.DataFrame({'Simulation Re #': Re, 'Assigned Velocity': RealVelocity, 'Velocity': velocity})
+        AssignedFlow = [v*Area for v in RealVelocity]
+        df = pd.DataFrame({'Simulation Re #': Re, 'Assigned Flow': AssignedFlow, 'Assigned Velocity': RealVelocity, 'Velocity': velocity})
         df.to_csv(f'{self.Args.OutputPath}')
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description="This script takes the ")
