@@ -11,6 +11,7 @@ import os
 path = os.path.abspath("./")
 sys.path.append(path)
 from tools.utilities import ReadXDMFFile
+from tools.ContrastTools import get_order
 import re
 import argparse
 from scripts.ContrastDispersion import ContrastDispersion
@@ -18,11 +19,12 @@ class ContrastMain():
     def __init__(self,args):
         self.Args = args
     def main(self):
-        foldernames = sorted(glob.glob(f'{self.Args.InputPath}/Re*'))
+        foldernames = get_order(f'{self.Args.InputPath}', 'Re')
+        #foldernames = sorted(glob.glob(f'{self.Args.InputPath}/Re*'))
         MeshPath = f'{foldernames[0]}/results_AdvectionDiffusion/*.xdmf'
         Mesh = ReadXDMFFile(glob.glob(MeshPath)[0])
         Diameter = Mesh.GetBounds()[3]-Mesh.GetBounds()[2]
-        print(Diameter)
+        #print(Diameter)
         viscosity = 0.04
         dcdx = []
         dcdt = []
