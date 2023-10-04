@@ -7,7 +7,12 @@ from scipy.fft import fft, ifft, fftfreq
 from math import pi
 from scipy.signal import butter,filtfilt
 import glob
-from utilities import ReadXDMFFile
+import re
+import os
+import sys
+path = os.path.abspath("./")
+sys.path.append(path)
+from tools.utilities import ReadXDMFFile
 
 def MAFilter(input, window_length):
     FilteredSignal = np.zeros(np.size(input)-window_length)
@@ -74,3 +79,13 @@ def ReadResults(foldername,NFiles):
         MeshDict = {counter:ReadXDMFFile(filenames[i])}
         counter += 1
     return MeshDict
+
+def extract_numbers(file):
+    return int(re.findall(r'\d+', file)[0])
+
+def get_order(path, ext):
+    filenames = os.listdir(path)
+    filenames = [f for f in filenames if f"{ext}" in f]
+    filenames = sorted(filenames, key = extract_numbers)#lambda x: int(x.split("_")[1].split(".")[0]))
+    filenames = [f"{path}/{f}" for f in filenames]
+    return filenames
