@@ -32,7 +32,6 @@ class ContrastDispersion():
 		slicer.SetImplicitFunction(plane)
 		time_array = []
 		for i in range(0,N,int(N/NFiles)):
-			print(filenames[i])
 			slicer.SetInputData(Mesh[i])
 			slicer.Update()
 			array_ = slicer.GetOutput().GetPointData().GetArray('f_22')
@@ -53,9 +52,12 @@ class ContrastDispersion():
 			array = vtk_to_numpy(array)
 			space_array.append(np.average(array))
 		# fit line on time and space domain
+		lag = 3
 		t = np.arange(0,N,int(N/NFiles))/1000
+		t = t[lag:]
 		x = np.arange(min_val, max_val, interval)
 		time_array = np.array(time_array)
+		time_array = time_array[lag:]
 		space_array = np.array(space_array)
 		model = LinearRegression()
 		model.fit(t.reshape(-1,1),time_array.reshape(-1,1))
@@ -74,8 +76,8 @@ class ContrastDispersion():
 		plt.show(block = False)
 		plt.pause(0.5)
 		plt.close()
-		velocity = dc_dt/dc_dx
-		print(dc_dt,dc_dx,abs(velocity))
+		velocity = abs(dc_dt/dc_dx)
+		#print(dc_dt,dc_dx,velocity)
 		return dc_dt,dc_dx,velocity
 
 if __name__=="__main__":
