@@ -61,7 +61,7 @@ def Modelfft(x,x_step,array):
     array_fft = np.array(fft(array))
     darray = 1j*2*pi*fx*array_fft
     d2array = 1j*2*pi*fx*darray
-    return array_fft, darray, d2array
+    return fx, array_fft, darray, d2array
 
 def lowpass(data, cutoff, fs, order):
     nyq = 0.5*fs
