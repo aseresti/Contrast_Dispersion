@@ -23,7 +23,7 @@ Friday Sept 29 TODOs:
    - Generate Oasis Mesh **Done**
    - Submit CFD for a Re of 500 (Check Re of Parastou's) **Submitted**
    - Advection Diffusion for the laminar flow 
-   - fft func
+   - fft func **Done**
 
 Sat Sep 30 TODOs:
    - Advection Diffusion for the laminar flow
@@ -33,6 +33,13 @@ Sat Sep 30 TODOs:
 
 Wed Oct 04 TODOs:
    - find the issue with velocity **Done**
-   - filter model
+   - filter model **In progress**
    - full resolution contrast dynamics
    - fix CFD for straight pipe **Done** 
+
+Fri Oct06 TODOs:
+   - rendering of the square mesh
+   - apply 2d fft on the unified square mesh
+   - 2d lowpass filter
+   - study the effect of the turbulance on frequency domain data
+   - Advection Diffusion of the straight pipe
