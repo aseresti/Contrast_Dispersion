@@ -38,7 +38,7 @@ Wed Oct 04 TODOs:
    - fix CFD for straight pipe **Done** 
 
 Fri Oct06 TODOs:
-   - rendering of the square mesh
+   - rendering of the square mesh **Done**
    - apply 2d fft on the unified square mesh
    - 2d lowpass filter
    - study the effect of the turbulance on frequency domain data
