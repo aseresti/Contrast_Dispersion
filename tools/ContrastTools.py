@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 import matplotlib.pyplot as plt
-from scipy.fft import fft, ifft, fftfreq
+from scipy.fft import fft, ifft, fftfreq, fft2, ifft2
 from math import pi
 from scipy.signal import butter,filtfilt
 import glob
