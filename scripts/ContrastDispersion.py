@@ -65,7 +65,7 @@ class ContrastDispersion():
 		plt.scatter(t.reshape(-1,1), time_array.reshape(-1,1))
 		plt.plot(t.reshape(-1,1), pred.reshape(-1,1), color = 'red')
 		plt.show(block = False)
-		plt.pause(0.5)
+		plt.pause(1)
 		plt.close()
 		dc_dt = model.coef_[0][0]
 		model.fit(x.reshape(-1,1),np.array(space_array).reshape(-1,1))
@@ -74,7 +74,7 @@ class ContrastDispersion():
 		plt.scatter(x.reshape(-1,1), space_array.reshape(-1,1))
 		plt.plot(x.reshape(-1,1), pred.reshape(-1,1), color = 'red')
 		plt.show(block = False)
-		plt.pause(0.5)
+		plt.pause(1)
 		plt.close()
 		velocity = abs(dc_dt/dc_dx)
 		#print(dc_dt,dc_dx,velocity)
