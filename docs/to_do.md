@@ -43,3 +43,8 @@ Fri Oct06 TODOs:
    - 2d lowpass filter **Done**
    - study the effect of the turbulance on frequency domain data **Done** applying a filter doesn't have any specific effect on the results
    - Advection Diffusion of the straight pipe
+
+Mon Oct09 TODOs:
+   - Contrast Dispersion on a Taper vessel + using accumulative volume
+   - implement accumulative volume method
+   
