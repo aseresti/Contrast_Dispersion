@@ -11,7 +11,7 @@ import argparse
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 from skimage import filters
-class ContrastDispersion():
+class ContrastDispersionFilter():
 	def __init__(self,args):
 		self.Args = args
 	def main(self):
@@ -88,4 +88,4 @@ if __name__=="__main__":
 	parser = argparse.ArgumentParser(description="This script implement the contrast dispersion pipeline")
 	parser.add_argument('-InputFolder', '--InputFolder', type=str, required=True, dest='InputFolder')
 	args = parser.parse_args()
-	ContrastDispersion(args).main()
+	ContrastDispersionFilter(args).main()
