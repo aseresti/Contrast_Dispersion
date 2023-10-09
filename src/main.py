@@ -16,6 +16,7 @@ from math import pi
 import re
 import argparse
 from scripts.ContrastDispersion import ContrastDispersion
+from scripts.ContrastDispersionFiltered import ContrastDispersionFilter
 class ContrastMain():
     def __init__(self,args):
         self.Args = args
@@ -28,28 +29,27 @@ class ContrastMain():
         Area = pi*(Diameter/2)**2
         #print(Diameter)
         viscosity = 0.04
-        dcdx = []
-        dcdt = []
-        velocity = []
+        velocity_ContrastDispersion = []
+        velocity_Filtered = []
         RealVelocity = []
         Re = []
         for folder in foldernames:
             print(folder)
             self.Args.InputFolder = f'{folder}/results_AdvectionDiffusion'
             [dc_dt,dc_dx,velocity_] = ContrastDispersion(self.Args).main()
-            dcdt.append(dc_dt)
-            dcdx.append(dc_dx)
-            velocity.append(velocity_)
+            velocity_ContrastDispersion.append(velocity_)
+            [dc_dt,dc_dx,velocity_] = ContrastDispersionFilter(self.Args).main()
+            velocity_Filtered.append(velocity_)
             Re_ = re.findall(r'\d+',folder)
             Re_ = Re_[1]                           
             Re.append(Re_)
             RealVelocity.append(viscosity*int(Re_)/Diameter)
         AssignedFlow = [v*Area for v in RealVelocity]
-        df = pd.DataFrame({'Simulation Re #': Re, 'Assigned Flow': AssignedFlow, 'Assigned Velocity': RealVelocity, 'Velocity': velocity})
+        df = pd.DataFrame({'Simulation Re #': Re, 'Assigned Flow': AssignedFlow, 'Assigned Velocity': RealVelocity, 'Velocity': velocity_ContrastDispersion, 'Velocity (Filtered Contrast Method)': velocity_Filtered})
         df.to_csv(f'{self.Args.OutputPath}')
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description="This script takes the ")
     parser.add_argument('-InputPath', '--InputPath', type=str, required=True, dest="InputPath", help="path to the simulations")
-    parser.add_argument('-OutputPath', '--OutputPath', type=str, required=True, dest="OutputPath", help="output file path")
+    parser.add_argument('-OutputPath', '--OutputPath', type=str, required=False, default="./Results.csv", dest="OutputPath", help="output file path")
     args = parser.parse_args()
     ContrastMain(args).main()
