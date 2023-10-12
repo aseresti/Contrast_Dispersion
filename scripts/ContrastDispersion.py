@@ -39,7 +39,7 @@ class ContrastDispersion():
 			time_array.append(np.average(array_))
 			peak_val = i
 		# take the slices over the last mesh
-		NSlices = 100
+		NSlices = 50
 		interval = (max_val - min_val)/NSlices
 		slicer.SetInputData(Mesh[peak_val])
 		space_array = []
@@ -64,20 +64,26 @@ class ContrastDispersion():
 		pred = model.predict(t.reshape(-1,1))
 		plt.scatter(t.reshape(-1,1), time_array.reshape(-1,1))
 		plt.plot(t.reshape(-1,1), pred.reshape(-1,1), color = 'red')
+		plt.show()
+		'''
 		plt.show(block = False)
 		plt.pause(1)
 		plt.close()
+		'''
 		dc_dt = model.coef_[0][0]
 		model.fit(x.reshape(-1,1),np.array(space_array).reshape(-1,1))
 		dc_dx = model.coef_[0][0]
 		pred = model.predict(x.reshape(-1,1))
 		plt.scatter(x.reshape(-1,1), space_array.reshape(-1,1))
 		plt.plot(x.reshape(-1,1), pred.reshape(-1,1), color = 'red')
+		plt.show()
+		'''
 		plt.show(block = False)
 		plt.pause(1)
 		plt.close()
+		'''
 		velocity = abs(dc_dt/dc_dx)
-		#print(dc_dt,dc_dx,velocity)
+		print(dc_dt,dc_dx,velocity)
 		return dc_dt,dc_dx,velocity
 
 if __name__=="__main__":
