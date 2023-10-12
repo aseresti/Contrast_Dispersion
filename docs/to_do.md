@@ -47,4 +47,7 @@ Fri Oct06 TODOs:
 Mon Oct09 TODOs:
    - Contrast Dispersion on a Taper vessel + using accumulative volume
    - implement accumulative volume method
+
+Wed Oct11 TODOs:
+   - Do we need to increase the time cycle of the Advection Diffusion? By how much?
    
