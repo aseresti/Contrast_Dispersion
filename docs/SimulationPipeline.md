@@ -18,7 +18,7 @@ Based on the work presented by Eslami 2022, by neglecting the diffusion force, a
 Both of the $\frac{dc}{dt}$ and $\frac{dc}{dz}$ can be found using an instantanous derivative of the upslope of the time attenuation curve and the length attenuation curve.
 
 ### Simulations
-To implement the contrast dispersion method on the contrast concentration data firstly acquires a geometery to be assigned. We used two geometries to test our pipeline on: i) A straight pipe geometry ii) A stenotic pipe geometery. Both pipes have a 81 mm length along the x-axis. The stenotic pipe has a $ 90\% $ stenosis at 9 mm after the inlet. The CFD simulations was implemented on the geometry using the Oasis solver. Next, using FEniCs library we implemented Advection Diffusion equation on the fluid velocity. Last step is to apply the Contrast Dispersion method on the contrast concentration data extracted from the Advection Diffusion Simulations. The details of the simulation can be found below:  
+To implement the contrast dispersion method on the contrast concentration data first, we need to assign a geometery to the CFD simulations. We used two geometries to test our pipeline on: i) A straight pipe geometry ii) A stenotic pipe geometery. Both pipes have a 81 mm (from -9 mm to 72 mm) length along the x-axis. The stenotic pipe has a $ 90 \\% $ stenosis at 9 mm after the inlet at x = 0. The CFD simulations was implemented on the geometry using the Oasis solver. Next, using FEniCs library we implemented the Advection Diffusion equation on the fluid velocity. Last step is to apply the Contrast Dispersion method on the contrast concentration data extracted from the Advection Diffusion Simulations. The details of the simulation can be found below:  
 
 #### 1. Oasis CFD simulations
 
