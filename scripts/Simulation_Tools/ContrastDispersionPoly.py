@@ -5,7 +5,11 @@ import argparse
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 import matplotlib.pyplot as plt
-from utilities import ReadXDMFFile, vtk_to_numpy
+import sys
+import os
+path = os.path.abspath("./")
+sys.path.append(path)
+from tools.utilities import ReadXDMFFile, vtk_to_numpy
 class ContrastDispersionPoly():
     def __init__(self,args) -> None:
         self.Args = args
