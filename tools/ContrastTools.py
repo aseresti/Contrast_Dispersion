@@ -70,22 +70,22 @@ def lowpass(data, cutoff, fs, order):
     y = filtfilt(b, a, data)
     return y
 
-def ReadResults(foldername,NFiles):
-    filenames = glob.glob(f'{foldername}/*.xdmf')
-    filenames = sorted(filenames)
-    N = len(filenames)
-    counter = 0
-    for i in range(0,N,int(N/NFiles)):
-        MeshDict = {counter:ReadXDMFFile(filenames[i])}
-        counter += 1
-    return MeshDict
-
 def extract_numbers(file):
     return int(re.findall(r'\d+', file)[0])
 
 def get_order(path, ext):
     filenames = os.listdir(path)
     filenames = [f for f in filenames if f"{ext}" in f]
-    filenames = sorted(filenames, key = extract_numbers)#lambda x: int(x.split("_")[1].split(".")[0]))
+    filenames = sorted(filenames, key = extract_numbers)
     filenames = [f"{path}/{f}" for f in filenames]
     return filenames
+
+
+def ReadResults(foldername,ext,NFiles):
+    filenames = get_order(foldername, ext)
+    N = len(filenames)
+    counter = 0
+    for i in range(0,N,int(N/NFiles)):
+        MeshDict = {counter:ReadXDMFFile(filenames[i])}
+        counter += 1
+    return MeshDict
