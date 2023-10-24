@@ -50,4 +50,7 @@ Mon Oct09 TODOs:
 
 Wed Oct11 TODOs:
    - Do we need to increase the time cycle of the Advection Diffusion? By how much?
-   
+
+Tue Oct24 TODOs:
+   - The centerline results are slightly different from cross-sectional average.
+     Need to adapt the code.
