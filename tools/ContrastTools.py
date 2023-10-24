@@ -12,7 +12,7 @@ import os
 import sys
 path = os.path.abspath("./")
 sys.path.append(path)
-from tools.utilities import ReadXDMFFile
+from tools.utilities import ReadXDMFFile, vtk_to_numpy
 
 def MAFilter(input, window_length):
     FilteredSignal = np.zeros(np.size(input)-window_length)
@@ -20,7 +20,7 @@ def MAFilter(input, window_length):
         FilteredSignal[point] = np.average(input[point:point+window_length])
     return FilteredSignal
 
-def slicer(Mesh,normal,origin):
+def AverageSlice(Mesh,normal,origin):
     plane = vtk.vtkPlane()
     plane.SetNormal(normal)
     plane.SetOrigin(origin)
@@ -30,7 +30,10 @@ def slicer(Mesh,normal,origin):
     slicer.SetImplicitFunction(plane)
     slicer.SetInputData(Mesh)
     slicer.Update()
-    return slicer.GetOutput()
+    array_ = slicer.GetOutput().GetPointData().GetArray(0)
+    array_ = vtk_to_numpy(array_)
+    AverageValue = np.average(array_)
+    return AverageValue, slicer
 
 def Model1D(x,array):
     model = LinearRegression()
@@ -85,7 +88,8 @@ def ReadResults(foldername,ext,NFiles):
     filenames = get_order(foldername, ext)
     N = len(filenames)
     counter = 0
+    MeshDict = dict()
     for i in range(0,N,int(N/NFiles)):
-        MeshDict = {counter:ReadXDMFFile(filenames[i])}
+        MeshDict[counter] = ReadXDMFFile(filenames[i])
         counter += 1
     return MeshDict
