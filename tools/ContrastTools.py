@@ -92,4 +92,4 @@ def ReadResults(foldername,ext,NFiles):
     for i in range(0,N,int(N/NFiles)):
         MeshDict[counter] = ReadXDMFFile(filenames[i])
         counter += 1
-    return MeshDict
+    return MeshDict, N
