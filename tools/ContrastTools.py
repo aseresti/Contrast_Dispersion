@@ -20,7 +20,7 @@ def MAFilter(input, window_length):
         FilteredSignal[point] = np.average(input[point:point+window_length])
     return FilteredSignal
 
-def AverageSlice(Mesh,normal,origin):
+def Slice(Mesh,normal,origin):
     plane = vtk.vtkPlane()
     plane.SetNormal(normal)
     plane.SetOrigin(origin)
@@ -31,20 +31,26 @@ def AverageSlice(Mesh,normal,origin):
     slicer.SetInputData(Mesh)
     slicer.Update()
     array_ = slicer.GetOutput().GetPointData().GetArray(0)
+    #* Defining a Point Locator to Find the PointID of the Point Close to the Origin of the Slice
+    locator = vtk.vtkPointLocator()
+    locator.SetDataSet(slicer.GetOutput())
+    PointId = locator.FindClosestPoint(origin)
+    #* Getting the Average Contrast and CenterLine Value of the Slice
+    CneterlineValue = array_.GetValue(PointId)
     array_ = vtk_to_numpy(array_)
     AverageValue = np.average(array_)
-    return AverageValue, slicer
+    return AverageValue, CneterlineValue
 
 def Model1D(x,array):
+    array = np.array(array)
     model = LinearRegression()
     model.fit(x.reshape(-1,1),array.reshape(-1,1))
     pred = model.predict(x.reshape(-1,1))
-    plt.scatter(x.reshape(-1,1), array.reshape(-1,1))
-    plt.plot(x.reshape(-1,1), pred.reshape(-1,1), color = 'red')
     slope = model.coef_[0][0]
-    return plt, slope
+    return slope, pred
 
 def ModelPoly(x,array):
+    array = np.array(array)
     poly = PolynomialFeatures(degree=2, include_bias=False)
     poly_features = poly.fit_transform(x)
     model = LinearRegression()
