@@ -5,102 +5,128 @@ Date: Oct24, 2023
 """
 
 import numpy as np
-import vtk
 import sys
 import os
 path = os.path.abspath("./")
-print(path)
 sys.path.append(path)
-from tools.utilities import vtk_to_numpy, ReadXDMFFile
 import os
-from tools.ContrastTools import get_order, ReadResults, AverageSlice, Model1D
+from tools.ContrastTools import ReadResults, Slice, Model1D
 import argparse
-from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 
 class ContrastDispersion():
     
     """
-    This class takes the results_AdvectionDiffusion Folder and returns the 
+    `This class takes the results_AdvectionDiffusion Folder and returns the 
     
-    averaged velocity using Contrast Dispersion Method provided by Eslami 2022.
+    `averaged velocity using Contrast Dispersion Method provided by Eslami 2022.
     """
 
-    # takes argparse args as input
+    #* takes argparse args as input
     def __init__(self,args):
         self.args = args
     
     def main(self):
-        # Read xdmf files from results_AdvectionDiffusion Folder
-        NFiles = 10
-        [MeshDict, N] = ReadResults(self.args.InputFolder, 'xdmf', NFiles)
-
-        # Getting Bounds of the mesh 
-        min_val = MeshDict[0].GetBounds()[0]
-        max_val = MeshDict[0].GetBounds()[1]
         
-        # Defining the origin and normal of the slicer
-        normal = (1., 0., 0.)
-        origin = (min_val, 0., 0.)
+        #* Read xdmf files from results_AdvectionDiffusion Folder
+        NFiles = 10 # >>> Number of temporal samples
+        [MeshDict, N] = ReadResults(self.args.InputFolder, 'xdmf', NFiles) # >>> Reading the Mesh Files and storing them into a dictionary
         
-        # Getting time-attenuation curve at the inlet using cross-sectional average
-        # looping over the input meshs
-        TemporalAttenuation = []
+        #* Getting Bounds of the mesh along the x-axis
+        min_val = MeshDict[0].GetBounds()[0] # >>> x_min
+        max_val = MeshDict[0].GetBounds()[1] # >>> x_max
+        
+        #* Defining the origin and normal of the slicer
+        normal = (1., 0., 0.) # >>> i
+        origin = (min_val, 0., 0.) # >>> Inflow
+        
+        #* Getting time-attenuation curve at the inlet using cross-sectional average
+        #* looping over the input meshs
+        TempAttAve = [] # >>>Temporal Attenuation Average Value across the cross-section
+        TempAttCent = [] # >>>Temporal Attenuation in the center of the cross-section
+        
         for mesh in MeshDict.values():
             
-            # taking the average value in the inlet slice
-            [average, slice] = AverageSlice(mesh, normal, origin)
-            TemporalAttenuation.append(average)
-            # ! exploring slice attributes 
-            print(dir(slice.GetOutputPort()))
-            print(slice.GetOutput().GetPointData().GetArray(0).GetValue(1))
-            # TODO: Find  the pointid of the origin coordinate and find the array value at that pointid
-            # print(slice.GetPoint(i for i in origin))
-            exit(1)
+            #* taking the average value in the inlet slice
+            [SectionAverage, CenterVal] = Slice(mesh, normal, origin) # >>> taking the inflow slice and reading the average and center value of the concentration array
+            TempAttAve.append(SectionAverage) # >>> Updating Temporal Attenuation Average list
+            TempAttCent.append(CenterVal) # >>> Updating Temporal Attenuation Center List
         
-        # fit linear model on the temporal curve
-        plt.figure(1)
-        t = np.arange(0,N,int(N/NFiles))/1000
-        [plt, dc_dt] = Model1D(t, TemporalAttenuation)
+        #* Get space-attenuation curve
+        NSlice = 50 # >>>Number of slices along the vessel
+        interval = (max_val - min_val)/NSlice # >>> The interval between slices along the lumen
+        SpatialAttAve = [] # >>>Spatial Attenuation Average Value across the cross-section
+        SpatialAttCent = [] # >>>Spatial Attenuation in the center of the cross-section
         
-        # Get space-attenuation curve
-        NSlice = 50
-        interval = (max_val - min_val)/NSlice
-        SpatialAttenuation = []
-
-        # Moving along the pipe
+        #* Moving along the pipe
         for i in range(NSlice):
+            
+            #* Define the cross-sectional origin along the pipe
+            origin = (min_val + i*interval, 0, 0) # >>> Updating the origin of the slice: Moving along the lumen
+            [SectionAverage, CenterVal] = Slice(MeshDict[NFiles-1], normal,origin) # >>> taking the slices and reading the average and center value of the concentration array
+            SpatialAttAve.append(SectionAverage) # >>> Updating Spatial Attenuation Average List
+            SpatialAttCent.append(CenterVal) # >>> Updating Spatial Attenuation Center List
 
-            # Define the cross-sectional origin along the pipe
-            origin = (min_val + i*interval)
-            [average, slice] = AverageSlice(MeshDict[NFiles-1], normal,origin)
-            SpatialAttenuation.append(average)
-
-            # TODO: Get the centerline value
-
-        # fit linear model on the spatial data
-        x = np.arange(min_val, max_val, interval)
-        plt.figure(2)
-        [plt, dc_dx] = Model1D(x, SpatialAttenuation)
-
-        # TODO: Output four figures of time and space for centerline and cross-sectional average
+        #* fit linear model on data
+        lag = 3 # >>> Time lag of the contrast diffusion
+        CycleLength = self.args.CycleDuration/self.args.Increment # >>> Number of Time Steps in a Cycle
+        t = np.arange(0,N,int(N/NFiles))/CycleLength # >>>Time (s)
+        t = t[lag:] # >>> Applying time lag on the time array
+        TempAttAve = np.array(TempAttAve[lag:])
+        TempAttCent = np.array(TempAttCent[lag:])
+        x = np.arange(min_val, max_val, interval) # >>> Space(cm)
         
-        # return velocity
-        velocity_sectional = abs(dc_dt/dc_dx)
-        return velocity_sectional
+        #`Linear Model (Lumen Mean)`
+        [dCdtAve, TempPredAve] = Model1D(t, TempAttAve)
+        [dCdxAve, SpacePredAve] = Model1D(x, SpatialAttAve)
+        
+        #`Linear Model (Lumen Center)`
+        [dCdtCent, TempPredCent] = Model1D(t, TempAttCent)
+        [dCdxCent, SpacePredCent] = Model1D(x, SpatialAttCent)
+        
+        #* Plotting Curves
+        plt.figure()
+        
+        #`temp`
+        plt.subplot(211)
+        plt.scatter(t.reshape(-1,1), TempAttAve.reshape(-1,1), label = "Inflow Mean")
+        plt.plot(t.reshape(-1,1), TempPredAve.reshape(-1,1), color = 'red', label = "Linear (Inflow Mean)")
+        plt.scatter(t.reshape(-1,1), TempAttCent.reshape(-1,1), label = "Inflow Center")
+        plt.plot(t.reshape(-1,1), TempPredCent.reshape(-1,1), color = 'green', label = "Linear (Inflow Center)")
+        plt.title("Temporal Attenuation Curve")
+        plt.xlabel("time (s)")
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+        
+        #`space`
+        plt.subplot(212)
+        plt.scatter(x.reshape(-1,1), np.array(SpatialAttAve).reshape(-1,1), label = "Lumen Mean")
+        plt.plot(x.reshape(-1,1), np.array(SpacePredAve).reshape(-1,1), color = 'red', label = "Linear (Lumen Mean)")
+        plt.scatter(x.reshape(-1,1), np.array(SpatialAttCent).reshape(-1,1), label = "Lumen Center")
+        plt.plot(x.reshape(-1,1), np.array(SpacePredCent).reshape(-1,1), color = 'green', label = "Linear (Linear Center)")
+        plt.title("Spatial Attenuation Curve")
+        plt.xlabel("length (cm)")
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+        plt.show()
+
+        #* return velocity
+        VelocityAve = abs(dCdtAve/dCdxAve)
+        VelocityCent = abs(dCdtCent/dCdxCent)
+        return VelocityAve, VelocityCent
 
 
 
 if __name__=="__main__":
-	# Define argparse arguments
+	#* Define argparse arguments
     parser = argparse.ArgumentParser(description="This script implement the contrast dispersion pipeline")
     
-    # Take Input Folder path
+    #* Take Input Folder path
     parser.add_argument('-InputFolder', '--InputFolder', type=str, required=True, dest='InputFolder')
-    # Define the duration of each cycle
+    #* Define the duration of each cycle
     parser.add_argument('-CycleDuration', '--CycleDuration', type=int, required=False, dest='CycleDuration', default=1000)
-    # Parse arguments
+    #* Define the Increment
+    parser.add_argument('-Increment', '--Increment', type=int, required=False, dest='Increment', default=20)
+    #* Parse arguments
     args = parser.parse_args()
-    # call the class
-    velocity_sectional = ContrastDispersion(args).main()
-    print(velocity_sectional)
+    #* call the class
+    [VelocityAve, VelocityCent] = ContrastDispersion(args).main()
+    print(VelocityAve, VelocityCent)
