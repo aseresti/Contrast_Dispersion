@@ -27,10 +27,4 @@ To implement the contrast dispersion method on the contrast concentration data f
 #### 3. Contrast Dispersion Simulation
 The simulation pipeline for the contrast dispersion method is implemented in [ContrastDispersion.py](../scripts/ContrastDispersion.py) script. This script takes the results folder containing the fenics simulation of the Advection-Diffusion simulations. It takes 10 concentration files linearly spaced in time to extract the upslope of the time-attenuation curve in the inlet cross-section of the pipe. Also, it takes the concentration at peak. To extract the length-attenuation curve is then extracted by taking 100 cross sections along the length of the pipe. Then, the average of the contrast concentration is taken to form the length-attenuation curve. Using the linear model package in the ScikitLearn library, I applied a linear model on both time-attenuation and length-attenuation curves. The slope of both models represent the istantanous derivatives of Contrast over temporal or spatial domain. Next step is to use eq. 3 to estimate the value of the average fluid velocity in the pipe.
 
-#### 4. Data and Results
 
-##### a) Straight Pipe Simulations: Test runtime
-
-##### b) Stenotic Pipe Simulation: Changing the Reynolds Number in the inlet of the geometry
-
-##### c) CT-MPI images results
