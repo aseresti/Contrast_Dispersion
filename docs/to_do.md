@@ -26,15 +26,15 @@ Friday Sept 29 TODOs:
    - fft func **Done**
 
 Sat Sep 30 TODOs:
-   - Advection Diffusion for the laminar flow
+   - Advection Diffusion for the laminar flow **Done**
    - fft func **Done**
    - Parastou's method results for data, Results excel sheet **Done**
 
 
 Wed Oct 04 TODOs:
    - find the issue with velocity **Done**
-   - filter model **In progress**
-   - full resolution contrast dynamics
+   - filter model **In progress** >> **Done**
+   - full resolution contrast dynamics **NFN**
    - fix CFD for straight pipe **Done** 
 
 Fri Oct06 TODOs:
@@ -42,15 +42,23 @@ Fri Oct06 TODOs:
    - apply 2d fft on the unified square mesh
    - 2d lowpass filter **Done**
    - study the effect of the turbulance on frequency domain data **Done** applying a filter doesn't have any specific effect on the results
-   - Advection Diffusion of the straight pipe
+   - Advection Diffusion of the straight pipe **Done**
 
 Mon Oct09 TODOs:
-   - Contrast Dispersion on a Taper vessel + using accumulative volume
-   - implement accumulative volume method
+   - Contrast Dispersion on a Taper vessel + using accumulative volume **Not For Now**
+   - implement accumulative volume method **NFN**
 
 Wed Oct11 TODOs:
-   - Do we need to increase the time cycle of the Advection Diffusion? By how much?
+   - Do we need to increase the time cycle of the Advection Diffusion? By how much? **Done**
 
 Tue Oct24 TODOs:
    - The centerline results are slightly different from cross-sectional average.
-     Need to adapt the code.
+   Need to adapt the code. **Done**
+
+Mon Oct30 TODOs:
+   - Run all of the advection diffusion simulations for 20 cycles with 1000 time steps in each cycle
+   - assign a sphere with a dimater of the CT-MPI spatial resolution to the centerline of the lumen.
+   - adapt the Advection Diffusion code to move the results to the hard drive at the end of the simulation.
+   - test 20 cycle results for the re of 100 and re of 1500.
+   - explain in an Md why the calculation error increases as we increase the number of time cycles.
+   - Update Simulation Results Md 
