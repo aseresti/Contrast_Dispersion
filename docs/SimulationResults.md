@@ -7,17 +7,17 @@ In this section we tried to implement the CFD and Advection Diffusion simulation
 
 ![Alt text](<../Images/Screen Shot 2023-10-30 at 11.04.02 AM.png>)
 
-### Test the run time
+### i) Test the run time
 In this test, I changed the number of the cycles ran in the advection diffusion simulation from 5 cycles to 30 cycles. The duration of each cycle is 1 second and the number of time step in each cycle is 1000. The inflow boundary condition assigned to the pipe in each simulation changes with respect to the input number of the cycle using the following formula:
-"(cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/(2*Td)))))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2
 
 $
 c_{min} + 0.5 \times (c_{max}-c_{min}) \times [1-cos(\pi \times \dfrac{t-T_s}{2 \times T_d})]
 $
 
-In which the $c_{min} = 0.0$, $c_{max} = 0.0$, $T_{s} = 0.0$
-### Test the centerline vs sectional average values
-### Test the Reynold's number
+In which the $c_{min} = 0.0$, $c_{max} = 0.0$, $T_{s} = 0.0$, and $T_{d} = number\ of\ run\ cycles$ which in our simulations varies from 5 to 20. The output function of this equation starts rising at 0 from 0 to 1 by the end of the last time cycle. The figure below shows how the assigned inflow function:
+
+### ii) Test the centerline vs sectional average values
+### iii) Test the Reynold's number
 
 ## b) Stenotic Pipe Simulation: Changing the Reynolds Number in the inlet of the geometry
 
