@@ -61,4 +61,9 @@ Mon Oct30 TODOs:
    - adapt the Advection Diffusion code to move the results to the hard drive at the end of the simulation.
    - test 20 cycle results for the re of 100 and re of 1500.
    - explain in an Md why the calculation error increases as we increase the number of time cycles.
-   - Update Simulation Results Md 
+   - Update Simulation Results Md **Done**
+
+Wed Nov1 TODOs:
+   - Update Simulation Results md with pictures
+   - check the Re 500 for about 13 time cycles.
+   - Update Stenotic pipe simulation results in simulation results md.
