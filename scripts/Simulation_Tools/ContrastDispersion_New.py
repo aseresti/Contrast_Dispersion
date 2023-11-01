@@ -9,7 +9,6 @@ import sys
 import os
 path = os.path.abspath("./")
 sys.path.append(path)
-import os
 from tools.ContrastTools import ReadResults, Slice, Model1D
 import argparse
 import matplotlib.pyplot as plt
@@ -29,13 +28,16 @@ class ContrastDispersion():
     def main(self):
         
         #* Read xdmf files from results_AdvectionDiffusion Folder
+        print('--- Reading the input meshes within the input folder')
         NFiles = 10 # >>> Number of temporal samples
         [MeshDict, N] = ReadResults(self.args.InputFolder, 'xdmf', NFiles) # >>> Reading the Mesh Files and storing them into a dictionary
-        
+        print('--- The number of read files within the input folder is: ',N)
+        print('-'*25)
+
         #* Getting Bounds of the mesh along the x-axis
         min_val = MeshDict[0].GetBounds()[0] # >>> x_min
         max_val = MeshDict[0].GetBounds()[1] # >>> x_max
-        
+
         #* Defining the origin and normal of the slicer
         normal = (1., 0., 0.) # >>> i
         origin = (min_val, 0., 0.) # >>> Inflow
@@ -45,6 +47,7 @@ class ContrastDispersion():
         TempAttAve = [] # >>>Temporal Attenuation Average Value across the cross-section
         TempAttCent = [] # >>>Temporal Attenuation in the center of the cross-section
         
+        print('--- Finding the temporal-attenuation curve by taking the inflow of the mesh')
         for mesh in MeshDict.values():
             
             #* taking the average value in the inlet slice
@@ -58,6 +61,7 @@ class ContrastDispersion():
         SpatialAttAve = [] # >>>Spatial Attenuation Average Value across the cross-section
         SpatialAttCent = [] # >>>Spatial Attenuation in the center of the cross-section
         
+        print('--- Finding the spatial-attenuation curve in the peak by slicing along the pipe')
         #* Moving along the pipe
         for i in range(NSlice):
             
@@ -66,8 +70,11 @@ class ContrastDispersion():
             [SectionAverage, CenterVal] = Slice(MeshDict[NFiles-1], normal,origin) # >>> taking the slices and reading the average and center value of the concentration array
             SpatialAttAve.append(SectionAverage) # >>> Updating Spatial Attenuation Average List
             SpatialAttCent.append(CenterVal) # >>> Updating Spatial Attenuation Center List
+        
+        print('-'*25)
 
         #* fit linear model on data
+        print('--- Fitting a linear model on temporal and spatial data')
         lag = 3 # >>> Time lag of the contrast diffusion
         CycleLength = self.args.CycleDuration/self.args.Increment # >>> Number of Time Steps in a Cycle
         t = np.arange(0,N,int(N/NFiles))/CycleLength # >>>Time (s)
@@ -85,6 +92,7 @@ class ContrastDispersion():
         [dCdxCent, SpacePredCent] = Model1D(x, SpatialAttCent)
         
         #* Plotting Curves
+        print('--- Plotting temporal and spatial attenuation curves')
         plt.figure()
         
         #`temp`
@@ -105,7 +113,7 @@ class ContrastDispersion():
         plt.plot(x.reshape(-1,1), np.array(SpacePredCent).reshape(-1,1), color = 'green', label = "Linear (Linear Center)")
         plt.title("Spatial Attenuation Curve")
         plt.xlabel("length (cm)")
-        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='best', borderaxespad=0.)
         plt.show()
 
         #* return velocity
@@ -127,6 +135,8 @@ if __name__=="__main__":
     parser.add_argument('-Increment', '--Increment', type=int, required=False, dest='Increment', default=20)
     #* Parse arguments
     args = parser.parse_args()
+    
     #* call the class
     [VelocityAve, VelocityCent] = ContrastDispersion(args).main()
-    print(VelocityAve, VelocityCent)
+    print('The sectional average velocity is: ', VelocityAve)
+    print('The centerline velocity is:', VelocityCent)
