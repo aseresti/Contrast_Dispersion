@@ -218,7 +218,7 @@ def SurfaceSmoothing(Surface,Nits,PB_value,method="Taubin"):
 		smoothingFilter = vtk.vtkSmoothPolyDataFilter()
 		smoothingFilter.SetInputData(Surface)
 		smoothingFilter.SetNumberOfIterations(Nits)
-		smoothingFilter.SetRelaxationFactor(PB_value)
+		smoothingFilter.SetRelpltationFactor(PB_value)
 		smoothingFilter.Update()
 		return smoothingFilter.GetOutput()
 	else:
