@@ -150,10 +150,15 @@ class OasisAdvectionDiffusion():
 			#OutputFile << (u,i)
 			ofile = XDMFFile(f"{self.Args.OutputFolder}/Concentration_{counter}.xdmf")
 			ofile.write(u)
+			os.system(f'mv {self.Args.OutputFolder}/Concentration_{counter}.xdmf {self.Args.HardDrivePath}/Concentration_{counter}.xdmf &')
+			
 
 			# Update previous solution
 			u_n.assign(u)
 			counter+=1
+		
+		os.system(f'rm -rf {self.Args.OutputFolder}')
+		
 
 if __name__=="__main__":
 	parser = argparse.ArgumentParser(description="This script will run an advection-diffusion equation on Oasis generated velocity field.")
@@ -178,7 +183,8 @@ if __name__=="__main__":
 
 	parser.add_argument('-OutputFolder', '--OutputFolder', type=str, required=False, default='results_AdvectionDiffusion', dest="OutputFolder", help="The output folder to store the results")
 
- 
+	parser.add_argument('-HardDrivePath', '--HardDrivePath', type=str, required=True, dest="HardDrivePath", help="The output folder in the Harddrive to store the results")
+
 	args=parser.parse_args()
 	OasisAdvectionDiffusion(args).Main()
 	
