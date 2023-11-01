@@ -18,7 +18,7 @@ def main(Args):
     """
 
     #* Read xdmf files from results_AdvectionDiffusion Folder
-    NFiles = 1000 # >>> Number of temporal samples
+    NFiles = 100 # >>> Number of temporal samples
     [MeshDict, N] = ReadResults(Args.InputFolder, 'xdmf', NFiles) # >>> Reading the Mesh Files and storing them into a dictionary
     print(N)
     #* Getting Bounds of the mesh along the x-axis
@@ -43,7 +43,7 @@ def main(Args):
 
     #* Plotting inflow
     plt.figure()
-    plt.plot(t.reshape(-1,1), TempAttAve.reshape(-1,1))
+    plt.plot(t.reshape(-1,1), np.array(TempAttAve).reshape(-1,1))
     plt.xlabel('time (s)')
     plt.ylabel('Inflow Contrast')
     plt.title('Contrast Agent Inflow Function')
