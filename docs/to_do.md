@@ -56,11 +56,11 @@ Tue Oct24 TODOs:
    Need to adapt the code. **Done**
 
 Mon Oct30 TODOs:
-   - Run all of the advection diffusion simulations for 20 cycles with 1000 time steps in each cycle
-   - assign a sphere with a dimater of the CT-MPI spatial resolution to the centerline of the lumen.
-   - adapt the Advection Diffusion code to move the results to the hard drive at the end of the simulation.
+   - Run all of the advection diffusion simulations for 20 cycles with 1000 time steps in each cycle. **Done** crashed though
+   - assign a sphere with a dimater of the CT-MPI spatial resolution to the centerline of the lumen. **The very next step of the project**
+   - adapt the Advection Diffusion code to move the results to the hard drive at the end of the simulation. **Done**
    - test 20 cycle results for the re of 100 and re of 1500.
-   - explain in an Md why the calculation error increases as we increase the number of time cycles.
+   - explain in an Md why the calculation error increases as we increase the number of time cycles. **Done**
    - Update Simulation Results Md **Done**
 
 Wed Nov1 TODOs:
