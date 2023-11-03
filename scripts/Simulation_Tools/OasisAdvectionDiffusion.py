@@ -150,7 +150,8 @@ class OasisAdvectionDiffusion():
 			#OutputFile << (u,i)
 			ofile = XDMFFile(f"{self.Args.OutputFolder}/Concentration_{counter}.xdmf")
 			ofile.write(u)
-			os.system(f'mv {self.Args.OutputFolder}/Concentration_{counter}.xdmf {self.Args.HardDrivePath}/Concentration_{counter}.xdmf &')
+			if self.Args.HardDrivePath:
+				os.system(f'mv {self.Args.OutputFolder}/Concentration_{counter}.xdmf {self.Args.HardDrivePath}/Concentration_{counter}.xdmf &')
 			
 			# Update previous solution
 			u_n.assign(u)

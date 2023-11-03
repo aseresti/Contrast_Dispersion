@@ -91,7 +91,7 @@ class OasisAdvectionDiffusion():
 		id_in[:] = info['inlet_id']
 		id_out=[]
 		id_out[:] = info['outlet_ids']
- 		
+		
 		print ("-"*75)
 		#Define time-dependent Contrast Boundary Condition #Eslami+, JBioMechEng, 2019
 		print ("--- Creating Expression for Contrast Concentration Profile.")
@@ -130,10 +130,10 @@ class OasisAdvectionDiffusion():
 			Progress_ = (t/(self.Args.Period*self.Args.ContrastPeriodFactor))*100
 			print ("Current Time is: %.05f. Completed: %s"%(t,Progress_))
 			t += self.Args.dt
-   
+
 			#Update the Contrast Inflow 
 			ConcentrationEquation.t = t	
- 
+
 			#Load the Velocity File Series from CFD simulation
 			f_u = HDF5File(MPI.comm_world, self.Args.InputFileName, "r")
 			f_u.read(w,f"/velocity/vector_{i%self.Args.NumberOfTimesteps}")
@@ -150,7 +150,8 @@ class OasisAdvectionDiffusion():
 			#OutputFile << (u,i)
 			ofile = XDMFFile(f"{self.Args.OutputFolder}/Concentration_{counter}.xdmf")
 			ofile.write(u)
-			os.system(f'mv {self.Args.OutputFolder}/Concentration_{counter}.xdmf {self.Args.HardDrivePath}/Concentration_{counter}.xdmf &')
+			if self.Args.HardDrivePath:
+				os.system(f'mv {self.Args.OutputFolder}/Concentration_{counter}.xdmf {self.Args.HardDrivePath}/Concentration_{counter}.xdmf &')
 			
 
 			# Update previous solution
@@ -183,7 +184,7 @@ if __name__=="__main__":
 
 	parser.add_argument('-OutputFolder', '--OutputFolder', type=str, required=False, default='results_AdvectionDiffusion', dest="OutputFolder", help="The output folder to store the results")
 
-	parser.add_argument('-HardDrivePath', '--HardDrivePath', type=str, required=True, dest="HardDrivePath", help="The output folder in the Harddrive to store the results")
+	parser.add_argument('-HardDrivePath', '--HardDrivePath', type=str, required=False, dest="HardDrivePath", help="The output folder in the Harddrive to store the results")
 
 	args=parser.parse_args()
 	OasisAdvectionDiffusion(args).Main()
