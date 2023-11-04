@@ -157,7 +157,8 @@ class OasisAdvectionDiffusion():
 			u_n.assign(u)
 			counter+=1
 
-		os.system(f'rm -rf {self.Args.OutputFolder}')
+		if self.Args.HardDrivePath:
+			os.system(f'rm -rf {self.Args.OutputFolder}')
 
 if __name__=="__main__":
 	parser = argparse.ArgumentParser(description="This script will run an advection-diffusion equation on Oasis generated velocity field.")

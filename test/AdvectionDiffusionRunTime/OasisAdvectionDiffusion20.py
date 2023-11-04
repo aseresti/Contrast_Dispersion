@@ -91,7 +91,7 @@ class OasisAdvectionDiffusion():
 		id_in[:] = info['inlet_id']
 		id_out=[]
 		id_out[:] = info['outlet_ids']
-		
+
 		print ("-"*75)
 		#Define time-dependent Contrast Boundary Condition #Eslami+, JBioMechEng, 2019
 		print ("--- Creating Expression for Contrast Concentration Profile.")
@@ -151,6 +151,7 @@ class OasisAdvectionDiffusion():
 			ofile = XDMFFile(f"{self.Args.OutputFolder}/Concentration_{counter}.xdmf")
 			ofile.write(u)
 			if self.Args.HardDrivePath:
+				print("------ Moving to the HardDrive")
 				os.system(f'mv {self.Args.OutputFolder}/Concentration_{counter}.xdmf {self.Args.HardDrivePath}/Concentration_{counter}.xdmf &')
 			
 
@@ -158,7 +159,8 @@ class OasisAdvectionDiffusion():
 			u_n.assign(u)
 			counter+=1
 		
-		os.system(f'rm -rf {self.Args.OutputFolder}')
+		if self.Args.HardDrivePath:
+			os.system(f'rm -rf {self.Args.OutputFolder}')
 		
 
 if __name__=="__main__":
