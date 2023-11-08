@@ -74,27 +74,55 @@ Learning that we need to consider the centerline value of the contrast concentra
   <span style="font-size: 10; color:#8df7cd">fig. 5</span>
 </center>
 
-<h3 style="text-align:left; color:#cf50e6; font-family: times new roman;"> i) assigning the run-time cycle for each simulation with a different Re # </h3>
+<h3 style="text-align:left; color:#cf50e6; font-family: times new roman;"> assigning the run-time cycle for each simulation with a different Re # </h3>
 
 As the length of the vessel is $\color{lightblue} \scriptstyle 81 cm$ and with the reynold's number of 500 the velocity is $\color{lightblue} \scriptstyle 6.66 \frac{cm}{s}$. Therefore, the time it takes that the bolus reaches the end of the vessel is $\color{lightblue} \scriptstyle \frac{81}{6.66} \approx 13 s$. The stenotic pipe simulatins at first ran for 20 time-cycles. The acquired results suggests that the 20 run-time cycle is not enough for the 
 As a results the results for Re400 and Re500 with 20 run time cycles, the bolus reaches the end of the vessel, while, for Re300, Re200 and Re100 only 20 cycles are not enough. As a results, first we need to find the run-time cycle for each Re number:
 
-<center style="color:lightblue">
+$\color{lightblue} \textstyle calculated\ run-time\ = \dfrac{L_{pipe}}{v_z}$
 
-|Re # |velocity |run-time cycles |
-|--- |--- |---|
-|<center>100 |<center>1.33 |<center>60.90 |
-|<center>200 |<center>2.66 |<center>30.45 |
-|<center>300 |<center>3.998|<center>20.26 |
-|<center>400 |<center>5.33 |<center>15.19 |
-|<center>500 |<center>6.66 |<center>12.16 |
-|<center>600 |<center>7.997|<center>10.13 |
-|<center>700 |<center>9.33 |<center>8.68 |
-|<center>800 |<center>10.66|<center>7.59 |
-|<center>900 |<center>11.99|<center>6.75 |
-|<center>1000|<center>13.33|<center>6.07 |
+<center style="color:lightgreen">
+  <span style="font-size: 10; color:#8df7cd">Table I. Calculating the run-time for simulation with different Re # vs. the real simulation run-time that is needed for the bolus to reach the end of the pipe</span>
+
+|<center>Re # |<center>velocity (cm/s)|<center>Calculated run-time (s) |<center>Simulation run-time (s) |<center> Calculated Velocity (cm/s) |
+|--- |--- |---|--- |--- |
+|<center>100 |<center>**1.33** |<center>60.90 |<center>70 |<center> **1.573716**
+|<center>200 |<center>**2.66** |<center>30.45 |<center>40 |<center> **2.865046**
+|<center>300 |<center>**3.998**|<center>20.26 |<center>30 |<center>**4.245609**
+|<center>400 |<center>**5.33** |<center>15.19 |<center>20 |<center>**5.775557**
+|<center>500 |<center>**6.66** |<center>12.16 |<center>20 |<center>**6.590552**
+|<center>600 |<center>**7.997**|<center>10.13 |<center> 18 |<center>**7.916947**
+|<center>700 |<center>**9.33** |<center>8.68 |<center>17 |<center>**9.312445**
+|<center>800 |<center>**10.66**|<center>7.59 |<center>17 |<center> **10.404388**
+|<center>900 |<center>11.99|<center>6.75 |<center>17 |<center>**11.597127**
+|<center>1000|<center>**13.33**|<center>6.07 |<center> 16|<center>**13.122003**
+
 </center>
 
-However, the results from simulations with different time steps suggest that the proposed run-time above is not sufficient for the bolus to reach the end of the pipe.
+However, the results from simulations with different time steps suggest that the proposed calulated run-time above is not sufficient for the bolus to reach the end of the pipe. As a result, the simulations were ran longer and the run-time for each simulation is reported in the Table I as well as the velocity estimation based on the contrast dispersion simulations. The simulation temporal and spatial attenuation curves are depicted below:
+
+<center>
+
+|Re#|<center>temporal and spatial attenuation curve |
+|--- |--- |
+|100|![alt text](../assets/stenotic_Re100_70cyc.png)|
+|200|![Alt text](../assets/stenotic_Re200_40cyc.png)|
+|300|![Alt text](../assets/stenotic_Re300_30cyc.png)|
+|400|![Alt text](../assets/stenotic_Re400_20cyc.png)|
+|500|![Alt text](../assets/stenotic_Re500_20cyc.png)|
+|600|![Alt text](../assets/stenotic_Re600_20cyc.png)|
+|700|![Alt text](../assets/stenotic_Re700_17cyc.png)|
+|800|![Alt text](../assets/stenotic_Re800_17cyc.png)|
+|900|![Alt text](../assets/stenotic_Re900_17cyc.png)|
+|1000|![Alt text](../assets/stenotic_Re1000_16cyc.png)|
+
+
+</center>
+
+
+<h2 style="text-align:left; color: #cf50e6; font-family: times new roman;"> c) Conclusion </h2>
+
+A pattern that appears in the estimated velocity value is that as I increase the simulation run-time the estimated value for velocity decreases. The main challenge in obtaining the correct velocity value is to understand the exact amount of run-time which is needed for the bolus to reach the end of the pipe. After passing that time, apparently due to the error embded in calculation of the contrast concentration temporal derivative, the velocity would not remain constant and keep decreasing.
+Obviously, the factors that play a role in the amount of time which is needed for bolus to reach the end of the pipe are the inflow Reynold's number, and the geometry of the pipe. Looking at the big picture, the main goal of this study is to understand the physiological effect of the stenosis by only looking at and processing the data acquired from the anatomical images of the coronary arteries. My conclusion is that in order to avoid computational cost through doing CFD simulations or similar method, relying on an electrical equivalent model of the coronaries that adapts to the higher resistance because of the stenosis and lower capacitance due to the hardening of the vessel wall will do a good job in estimation of the time needed for the bolus to reach the end of the vessel. The remaining challenge is yet to find the inflow boundary conditions.
 
 </span>
