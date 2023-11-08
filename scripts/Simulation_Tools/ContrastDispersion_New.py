@@ -12,6 +12,7 @@ sys.path.append(path)
 from tools.ContrastTools import ReadResults, Slice, Model1D
 import argparse
 import matplotlib.pyplot as plt
+import math
 
 class ContrastDispersion():
     
@@ -29,7 +30,7 @@ class ContrastDispersion():
         
         #* Read xdmf files from results_AdvectionDiffusion Folder
         print('--- Reading the input meshes within the input folder')
-        NFiles = 10 # >>> Number of temporal samples
+        NFiles = 20 # >>> Number of temporal samples
         [MeshDict, N] = ReadResults(self.args.InputFolder, 'xdmf', NFiles) # >>> Reading the Mesh Files and storing them into a dictionary
         print('--- The number of read files within the input folder is: ',N)
         print('-'*25)
@@ -63,11 +64,14 @@ class ContrastDispersion():
         
         print('--- Finding the spatial-attenuation curve in the peak by slicing along the pipe')
         #* Moving along the pipe
+        peak = math.ceil(NFiles/20*16)
+        #peak = NFiles-1
+
         for i in range(NSlice):
             
             #* Define the cross-sectional origin along the pipe
             origin = (min_val + i*interval, 0, 0) # >>> Updating the origin of the slice: Moving along the lumen
-            [SectionAverage, CenterVal] = Slice(MeshDict[NFiles-1], normal,origin) # >>> taking the slices and reading the average and center value of the concentration array
+            [SectionAverage, CenterVal] = Slice(MeshDict[peak], normal, origin) # >>> taking the slices and reading the average and center value of the concentration array
             SpatialAttAve.append(SectionAverage) # >>> Updating Spatial Attenuation Average List
             SpatialAttCent.append(CenterVal) # >>> Updating Spatial Attenuation Center List
         
@@ -75,7 +79,7 @@ class ContrastDispersion():
 
         #* fit linear model on data
         print('--- Fitting a linear model on temporal and spatial data')
-        lag = 3 # >>> Time lag of the contrast diffusion
+        lag = 6 # >>> Time lag of the contrast diffusion
         CycleLength = self.args.CycleDuration/self.args.Increment # >>> Number of Time Steps in a Cycle
         t = np.arange(0,N,int(N/NFiles))/CycleLength # >>>Time (s)
         t = t[lag:] # >>> Applying time lag on the time array
@@ -93,27 +97,27 @@ class ContrastDispersion():
         
         #* Plotting Curves
         print('--- Plotting temporal and spatial attenuation curves')
-        plt.figure()
+        plt.figure(figsize=(13,5))
         
         #`temp`
-        plt.subplot(211)
-        plt.scatter(t.reshape(-1,1), TempAttAve.reshape(-1,1), label = "Inflow Mean")
-        plt.plot(t.reshape(-1,1), TempPredAve.reshape(-1,1), color = 'red', label = "Linear (Inflow Mean)")
+        plt.subplot(121)
+        #plt.scatter(t.reshape(-1,1), TempAttAve.reshape(-1,1), label = "Inflow Mean")
+        #plt.plot(t.reshape(-1,1), TempPredAve.reshape(-1,1), color = 'red', label = "Linear (Inflow Mean)")
         plt.scatter(t.reshape(-1,1), TempAttCent.reshape(-1,1), label = "Inflow Center")
-        plt.plot(t.reshape(-1,1), TempPredCent.reshape(-1,1), color = 'green', label = "Linear (Inflow Center)")
+        plt.plot(t.reshape(-1,1), TempPredCent.reshape(-1,1), color = 'red', label = "Linear (Inflow Center)")
         plt.title("Temporal Attenuation Curve")
         plt.xlabel("time (s)")
-        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+        #plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
         
         #`space`
-        plt.subplot(212)
-        plt.scatter(x.reshape(-1,1), np.array(SpatialAttAve).reshape(-1,1), label = "Lumen Mean")
-        plt.plot(x.reshape(-1,1), np.array(SpacePredAve).reshape(-1,1), color = 'red', label = "Linear (Lumen Mean)")
+        plt.subplot(122)
+        #plt.scatter(x.reshape(-1,1), np.array(SpatialAttAve).reshape(-1,1), label = "Lumen Mean")
+        #plt.plot(x.reshape(-1,1), np.array(SpacePredAve).reshape(-1,1), color = 'red', label = "Linear (Lumen Mean)")
         plt.scatter(x.reshape(-1,1), np.array(SpatialAttCent).reshape(-1,1), label = "Lumen Center")
-        plt.plot(x.reshape(-1,1), np.array(SpacePredCent).reshape(-1,1), color = 'green', label = "Linear (Linear Center)")
+        plt.plot(x.reshape(-1,1), np.array(SpacePredCent).reshape(-1,1), color = 'red', label = "Linear (Linear Center)")
         plt.title("Spatial Attenuation Curve")
         plt.xlabel("length (cm)")
-        plt.legend(bbox_to_anchor=(1.05, 1), loc='best', borderaxespad=0.)
+        #plt.legend(bbox_to_anchor=(1.05, 1), loc='best', borderaxespad=0.)
         plt.show()
 
         #* return velocity
