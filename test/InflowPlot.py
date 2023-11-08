@@ -21,6 +21,7 @@ def main(Args):
     NFiles = 100 # >>> Number of temporal samples
     [MeshDict, N] = ReadResults(Args.InputFolder, 'xdmf', NFiles) # >>> Reading the Mesh Files and storing them into a dictionary
     print(N)
+
     #* Getting Bounds of the mesh along the x-axis
     min_val = MeshDict[0].GetBounds()[0] # >>> x_min
     
