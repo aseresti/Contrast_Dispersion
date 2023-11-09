@@ -66,4 +66,7 @@ Mon Oct30 TODOs:
 Wed Nov1 TODOs:
    - ~~Update Simulation Results md with pictures~~ **Done**
    - ~~check the Re 500 for about 13 time cycles.~~ **Done**
-   - Update Stenotic pipe simulation results in simulation results md.
+   - ~~Update Stenotic pipe simulation results in simulation results md.~~ **Done**
+
+Wed Nov8 TODOs:
+   - What is an electrical model of the pipe that adapts with stenosis and Re#?
