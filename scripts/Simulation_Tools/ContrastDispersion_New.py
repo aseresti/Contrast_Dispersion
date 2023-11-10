@@ -64,8 +64,8 @@ class ContrastDispersion():
         
         print('--- Finding the spatial-attenuation curve in the peak by slicing along the pipe')
         #* Moving along the pipe
-        peak = math.ceil(NFiles/20*16)
-        #peak = NFiles-1
+        #peak = math.ceil(NFiles/20*13)
+        peak = NFiles-1
 
         for i in range(NSlice):
             
