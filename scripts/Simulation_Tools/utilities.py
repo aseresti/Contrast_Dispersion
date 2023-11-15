@@ -1,5 +1,5 @@
 import vtk
-from vmtk import vtkvmtk, vmtkscripts
+#from vmtk import vtkvmtk, vmtkscripts
 from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 import numpy as np
 from glob import glob
@@ -44,6 +44,12 @@ def ReadVTPFile(FileName):
 def ReadVTIFile(FileName):
 	reader = vtk.vtkXMLImageDataReader() 
 	reader.SetFileName(FileName) 
+	reader.Update()
+	return reader.GetOutput()
+
+def ReadXDMFFile(FileName):
+	reader = vtk.vtkXdmfReader()
+	reader.SetFileName(FileName)
 	reader.Update()
 	return reader.GetOutput()
 
@@ -212,7 +218,7 @@ def SurfaceSmoothing(Surface,Nits,PB_value,method="Taubin"):
 		smoothingFilter = vtk.vtkSmoothPolyDataFilter()
 		smoothingFilter.SetInputData(Surface)
 		smoothingFilter.SetNumberOfIterations(Nits)
-		smoothingFilter.SetRelaxationFactor(PB_value)
+		smoothingFilter.SetRelpltationFactor(PB_value)
 		smoothingFilter.Update()
 		return smoothingFilter.GetOutput()
 	else:
@@ -225,6 +231,14 @@ def SurfaceAddArray(Surface,Array,ArrayName):
 	Surface.GetPointData().AddArray(SurfaceArray)
 	Surface.Modified()
 	return Surface
+
+def SurfaceAddCellArray(Surface,Array,ArrayName):
+        SurfaceArray=numpy_to_vtk(Array,deep=True)
+        SurfaceArray.SetName(ArrayName)
+        Surface.GetCellData().AddArray(SurfaceArray)
+        Surface.Modified()
+        return Surface
+
 
 def ProjectedPointOnLine(coord_,Centroid,Apex,Norm1):
 	#Find the location (coord,distance) on the LV Apex-Base axis
@@ -255,21 +269,42 @@ def ThresholdByUpper(Volume,arrayname,value):
 	Threshold.Update()
 	return Threshold.GetOutput()
 
-
-                
 def ThresholdInBetween(Volume,arrayname,value1,value2):
-	Threshold=vtk.vtkThreshold()
-	Threshold.SetInputData(Volume)
-	Threshold.ThresholdBetween(value1,value2)
-	Threshold.SetInputArrayToProcess(0,0,0,vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS,arrayname)
-	Threshold.Update()
-	return Threshold.GetOutput()
+        Threshold=vtk.vtkThreshold()
+        Threshold.SetInputData(Volume)
+        Threshold.ThresholdBetween(value1,value2)
+        Threshold.SetInputArrayToProcess(0,0,0,vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS,arrayname)
+        Threshold.Update()
+        return Threshold.GetOutput()
+
+def ConvertPointsToLine(PointsArray):
+        # Create a vtkPoints object and store the points in it
+        Points = vtk.vtkPoints()
+        for Point_ in PointsArray:
+                Points.InsertNextPoint(Point_)
+
+        #Create a Polyline
+        polyLine = vtk.vtkPolyLine()
+        polyLine.GetPointIds().SetNumberOfIds(len(PointsArray))
+
+        for i in range(0, len(PointsArray)):
+                polyLine.GetPointIds().SetId(i, i)
 
 
-def ComputeArea(Surface):
-	masser = vtk.vtkMassProperties()
-	masser.SetInputData(Surface)
-	masser.Update()
-	return masser.GetSurfaceArea()
+        # Create a cell array to store the lines in and add the lines to it
+        cells = vtk.vtkCellArray()
+        cells.InsertNextCell(polyLine)
+
+        # Create a polydata to store everything in
+        polyData = vtk.vtkPolyData()
+
+        # Add the points to the dataset
+        polyData.SetPoints(Points)
+
+        # Add the lines to the dataset
+        polyData.SetLines(cells)
+
+        return polyData
+
 
 
