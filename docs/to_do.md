@@ -70,3 +70,4 @@ Wed Nov1 TODOs:
 
 Wed Nov8 TODOs:
    - What is an electrical model of the pipe that adapts with stenosis and Re#?
+   - Why there is a difference between the calculated time for the bolus to reach the end of the vessel, and the actual time that it takes for the bolus to reach the outflow?
