@@ -6,6 +6,7 @@ Results.csv
 square.vtp
 square.vtu
 squarefft.vtu
+.DS_Store
 
 # C extensions
 *.so
