@@ -4,31 +4,21 @@ One of the problems that we have faced in finding the velocity out of the contra
 ## Advection-Diffusion equation with Crank-Nicoloson implementation
 Crank-Nicoloson method is applied on PDEs based on the equation below:
 
-$
-{\color{blue} \textstyle \dfrac{P^k - P^{k-1}}{\Delta t}=\theta Q^k + (1-\theta)Q^{k-1}}
-$
+${\color{blue} \textstyle \dfrac{P^{\color{red}k} - P^{\color{red}k-1}}{\Delta t}={\color{BlueGreen}\theta} Q^{\color{red}k} + (1-{\color{BlueGreen}\theta})Q^{\color{red}k-1}}$
 
-$
-{\color{blue} \textstyle \theta = 0.5}
-$
+${\color{blue} \textstyle \theta = 0.5}$
 
 the advection diffusion equation is presented below:
 
-$
-{\color{blue} \textstyle \dfrac{\partial C}{\partial t} + (U.\nabla)C = D\nabla^2C}
-$
+${\color{blue} \textstyle \dfrac{\partial C}{\partial t} + (U.\nabla)C = D\nabla^2C}$
 
 The time-discrete version of this equation is implemented as below where ${\color{blue} \textstyle \Delta t}$ is the time discritization parameter:
 
-$
-{\color{blue} \textstyle \dfrac{C^k - C^{k-1}}{\Delta t} = -(u.\nabla)C^k+D\nabla^2C^k}
-$
+${\color{blue} \textstyle \dfrac{C^{color{red}k} - C^{\color{red}k-1}}{\Delta t} = -(u.\nabla)C^{\color{red}k}+D\nabla^2C^{\color{red}k}}$
 
 the right-side of this equation represents the $Q$ in ${\color{blue} \textstyle \theta}$-scheme. Therefore, the Crank-Nicolson (${\color{blue} \scriptstyle \theta = 0.5}$) implementation of the advection diffusion is:
 
-$
-{\color{blue} \textstyle \dfrac{C^k - C^{k-1}}{\Delta t} = 0.5(-(u.\nabla)C^k+D\nabla^2C^k) + 0.5(0.5(-(u.\nabla)C^{k-1}+D\nabla^2C^{k-1}))}
-$
+${\color{blue} \textstyle \dfrac{C^{\color{red}k} - C^{\color{red}k-1}}{\Delta t} = {\color{BlueGreen}0.5}(-(u.\nabla)C^{\color{red}k}+D\nabla^2C^{\color{red}k}) + {\color{BlueGreen}0.5}((-(u.\nabla)C^{\color{red}k-1}+D\nabla^2C^{\color{red}k-1}))}$
 
 ## FEniCs implementation of the Advection Diffusion: Crank-Nicolson Scheme
 
