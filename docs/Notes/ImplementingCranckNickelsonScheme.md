@@ -6,7 +6,9 @@ Crank-Nicoloson method is applied on PDEs based on the equation below:
 
 $
 {\color{blue} \textstyle \dfrac{P^k - P^{k-1}}{\Delta t}=\theta Q^k + (1-\theta)Q^{k-1}}
+$
 
+$
 {\color{blue} \textstyle \theta = 0.5}
 $
 
@@ -16,7 +18,7 @@ $
 {\color{blue} \textstyle \dfrac{\partial C}{\partial t} + (U.\nabla)C = D\nabla^2C}
 $
 
-The time-discrete version of this equation is implemented as below where ${\cplor{blue} \scriptstyle \Delta t}$ is the time discritization parameter:
+The time-discrete version of this equation is implemented as below where ${\color{blue} \textstyle \Delta t}$ is the time discritization parameter:
 
 $
 {\color{blue} \textstyle \dfrac{C^k - C^{k-1}}{\Delta t} = -(u.\nabla)C^k+D\nabla^2C^k}
@@ -42,3 +44,5 @@ Plus, the second order implementation of the temporal derivative using the crank
 Theta = Constant(0.5)
 F = ((u - u_n) / k)*v*dx + Theta*dot(w, grad(u))*v*dx	+ Theta*D*dot(grad(u), grad(v))*dx + Theta*dot(w, grad(u_n))*v*dx	+ Theta*D*dot(grad(u_n), grad(v))*dx - source*v*dx
 ```
+
+To study more about the ${\color{blue} \textstyle \theta}$-scheme and its implementation on FEniCs look at [link](https://home.simula.no/~hpl/homepage/fenics-tutorial/release-1.0-nonabla/webm/timedep.html) and [link](https://en.wikipedia.org/wiki/Crank–Nicolson_method)
