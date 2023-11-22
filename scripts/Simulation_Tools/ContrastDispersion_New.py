@@ -136,7 +136,7 @@ if __name__=="__main__":
     #* Define the duration of each cycle
     parser.add_argument('-CycleDuration', '--CycleDuration', type=int, required=False, dest='CycleDuration', default=1000)
     #* Define the Increment
-    parser.add_argument('-Increment', '--Increment', type=int, required=False, dest='Increment', default=20)
+    parser.add_argument('-Increment', '--Increment', type=int, required=False, dest='Increment', default=30)
     #* Parse arguments
     args = parser.parse_args()
     
