@@ -95,7 +95,7 @@ class OasisAdvectionDiffusion():
 		print ("-"*75)
 		#Define time-dependent Contrast Boundary Condition #Eslami+, JBioMechEng, 2019
 		print ("--- Creating Expression for Contrast Concentration Profile.")
-		ConcentrationEquation = Expression("(cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/(2*Td)))))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
+		ConcentrationEquation = Expression("(cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/(Td)))))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
 		
 		#Assing the inflow boundary for the concentration
 		print ("--- Assigning Wall Boundary Condition.")

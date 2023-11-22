@@ -109,7 +109,8 @@ class OasisAdvectionDiffusion():
 		#---------------------------------------------------------
 		#Write the Function to minimize
 		print ("--- Creating Variational Equation")
-		F = ((u - u_n) / k)*v*dx + dot(w, grad(u))*v*dx	+ D*dot(grad(u), grad(v))*dx - source*v*dx
+		Theta = Constant(0.5) #Crank-Nikolson Scheme
+		F = ((u - u_n) / k)*v*dx + Theta*dot(w, grad(u))*v*dx	+ Theta*D*dot(grad(u), grad(v))*dx + Theta*dot(w, grad(u_n))*v*dx	+ Theta*D*dot(grad(u_n), grad(v))*dx - source*v*dx
 		print ("--- Separating LHS and RHS")
 		a1 = lhs(F)
 		L1 = rhs(F)
@@ -172,7 +173,7 @@ if __name__=="__main__":
 	
 	parser.add_argument('-EndStep', '--EndStep', type=int, required=False, default=1000, dest="EndStep",help="The ending timestep for CFD simulation.")
 	
-	parser.add_argument('-Increment', '--Increment', type=int, required=False, default=30, dest="Increment",help="The Increment Between Timestep Saving.")
+	parser.add_argument('-Increment', '--Increment', type=int, required=False, default=1., dest="Increment",help="The Increment Between Timestep Saving.")
 	
 	parser.add_argument('-MeshFileName', '--MeshFileName', type=str, required=True, dest="MeshFileName",help="The filename that contains the mesh file")
 
