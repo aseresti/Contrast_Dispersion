@@ -14,7 +14,7 @@ ${\color{blue} \textstyle \dfrac{\partial C}{\partial t} + (U.\nabla)C = D\nabla
 
 The time-discrete version of this equation is implemented as below where ${\color{blue} \textstyle \Delta t}$ is the time discritization parameter:
 
-${\color{blue} \textstyle \dfrac{C^{color{red}k} - C^{\color{red}k-1}}{\Delta t} = -(u.\nabla)C^{\color{red}k}+D\nabla^2C^{\color{red}k}}$
+${\color{blue} \textstyle \dfrac{C^{\color{red}k} - C^{\color{red}k-1}}{\Delta t} = -(u.\nabla)C^{\color{red}k}+D\nabla^2C^{\color{red}k}}$
 
 the right-side of this equation represents the $Q$ in ${\color{blue} \textstyle \theta}$-scheme. Therefore, the Crank-Nicolson (${\color{blue} \scriptstyle \theta = 0.5}$) implementation of the advection diffusion is:
 
