@@ -18,7 +18,7 @@ ${\color{blue} \textstyle \dfrac{C^{\color{red}k} - C^{\color{red}k-1}}{\Delta t
 
 the right-side of this equation represents the $Q$ in ${\color{blue} \textstyle \theta}$-scheme. Therefore, the Crank-Nicolson (${\color{blue} \scriptstyle \theta = 0.5}$) implementation of the advection diffusion is:
 
-${\color{blue} \textstyle \dfrac{C^{\color{red}k} - C^{\color{red}k-1}}{\Delta t} = {\color{BlueGreen}0.5}(-(u.\nabla)C^{\color{red}k}+D\nabla^2C^{\color{red}k}) + {\color{BlueGreen}0.5}((-(u.\nabla)C^{\color{red}k-1}+D\nabla^2C^{\color{red}k-1}))}$
+${\color{blue} \textstyle \dfrac{C^{\color{red}k} - C^{\color{red}k-1}}{\Delta t} = {\color{BlueGreen}0.5}(-(u.\nabla)C^{\color{red}k}+D\nabla^2C^{\color{red}k}) + {\color{BlueGreen}0.5}(-(u.\nabla)C^{\color{red}k-1}+D\nabla^2C^{\color{red}k-1})}$
 
 ## FEniCs implementation of the Advection Diffusion: Crank-Nicolson Scheme
 
