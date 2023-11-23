@@ -6,7 +6,7 @@ Crank-Nicoloson method is applied on PDEs based on the equation below:
 
 ${\color{blue} \textstyle \dfrac{P^{\color{red}k} - P^{\color{red}k-1}}{\Delta t}={\color{BlueGreen}\theta} Q^{\color{red}k} + (1-{\color{BlueGreen}\theta})Q^{\color{red}k-1}}$
 
-${\color{blue} \textstyle \theta = 0.5}$
+${\color{BlueGreen} \textstyle \theta = 0.5}$
 
 the advection diffusion equation is presented below:
 
