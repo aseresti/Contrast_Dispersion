@@ -25,14 +25,14 @@ ${\color{blue} \textstyle \dfrac{C^{\color{red}k} - C^{\color{red}k-1}}{\Delta t
 The linear implementation of the temporal derivatave on FEniCs is as below:
 
 ```
-F = ((u - u_n) / k)*v*dx + dot(w, grad(u))*v*dx	+ D*dot(grad(u), grad(v))*dx - source*v*dx
+F = ((u - u_n) / k)*v*dx + dot(w, grad(u))*v*dx + D*dot(grad(u), grad(v))*dx - source*v*dx
 ```
 
 Plus, the second order implementation of the temporal derivative using the crank-nikolson scheme would be as what follows:
 
 ```
 Theta = Constant(0.5)
-F = ((u - u_n) / k)*v*dx + Theta*dot(w, grad(u))*v*dx	+ Theta*D*dot(grad(u), grad(v))*dx + Theta*dot(w, grad(u_n))*v*dx	+ Theta*D*dot(grad(u_n), grad(v))*dx - source*v*dx
+F = ((u - u_n) / k)*v*dx + Theta*dot(w, grad(u))*v*dx + Theta*D*dot(grad(u), grad(v))*dx + Theta*dot(w, grad(u_n))*v*dx + Theta*D*dot(grad(u_n), grad(v))*dx - source*v*dx
 ```
 
 To study more about the ${\color{blue} \textstyle \theta}$-scheme and its implementation on FEniCs look at [link](https://home.simula.no/~hpl/homepage/fenics-tutorial/release-1.0-nonabla/webm/timedep.html) and [link](https://en.wikipedia.org/wiki/Crank–Nicolson_method)
