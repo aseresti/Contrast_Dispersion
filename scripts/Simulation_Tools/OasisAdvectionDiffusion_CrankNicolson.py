@@ -146,14 +146,17 @@ class OasisAdvectionDiffusion():
 			#solve(A1,c.vector(),b1)#,"gmres","default")
 		
 
-			#Store the solution
-			print ("------ Storing Solution")
-			#OutputFile << (u,i)
-			ofile = XDMFFile(f"{self.Args.OutputFolder}/Concentration_{counter}.xdmf")
-			ofile.write(u)
-			if self.Args.HardDrivePath:
-				os.system(f'mv {self.Args.OutputFolder}/Concentration_{counter}.xdmf {self.Args.HardDrivePath}/Concentration_{counter}.xdmf &')
-			
+			if i%self.Args.ResultsSavingFreq == 0:
+				#Store the solution
+				print ("------ Storing Solution")
+				#OutputFile << (u,i)
+				ofile = XDMFFile(f"{self.Args.OutputFolder}/Concentration_{counter}.xdmf")
+				ofile.write(u)
+				if self.Args.HardDrivePath:
+					os.system(f'mv {self.Args.OutputFolder}/Concentration_{counter}.xdmf {self.Args.HardDrivePath}/Concentration_{counter}.xdmf &')
+			else:
+				print("------ Simulations in progress")
+
 			# Update previous solution
 			u_n.assign(u)
 			counter+=1
@@ -178,14 +181,15 @@ if __name__=="__main__":
 	
 	parser.add_argument('-EndStep', '--EndStep', type=int, required=False, default=1000, dest="EndStep",help="The ending timestep for CFD simulation.")
 	
-	parser.add_argument('-Increment', '--Increment', type=int, required=False, default=1, dest="Increment",help="The Increment Between Timestep Saving.")
+	parser.add_argument('-Increment', '--Increment', type=int, required=False, default=10., dest="Increment",help="The Increment Between Timestep Saving.")
 	
 	parser.add_argument('-MeshFileName', '--MeshFileName', type=str, required=True, dest="MeshFileName",help="The filename that contains the mesh file")
 
-	parser.add_argument('-OutputFolder', '--OutputFolder', type=str, required=False, default='results_AdvectionDiffusion', dest="OutputFolder", help="The output folder to store the results")
+	parser.add_argument('-OutputFolder', '--OutputFolder', type=str, required=False, default="results_AdvectionDiffusion", dest="OutputFolder", help="The output folder to store the results")
 
 	parser.add_argument('-HardDrivePath', '--HardDrivePath', type=str, required=False, dest="HardDrivePath", help="The output folder in the Harddrive to store the results")
 
+	parser.add_argument('-ResultsSavingFreq','--ResultsSavingFreq', type=int, default=20, required=False, dest="ResultsSavingFreq", help="the frequency by which the results are save")
 
 	args=parser.parse_args()
 	OasisAdvectionDiffusion(args).Main()

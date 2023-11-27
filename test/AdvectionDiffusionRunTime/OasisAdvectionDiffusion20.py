@@ -95,7 +95,7 @@ class OasisAdvectionDiffusion():
 		print ("-"*75)
 		#Define time-dependent Contrast Boundary Condition #Eslami+, JBioMechEng, 2019
 		print ("--- Creating Expression for Contrast Concentration Profile.")
-		ConcentrationEquation = Expression("(cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/(2*Td)))))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
+		ConcentrationEquation = Expression("(cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/(Td)))))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
 		
 		#Assing the inflow boundary for the concentration
 		print ("--- Assigning Wall Boundary Condition.")
@@ -109,7 +109,8 @@ class OasisAdvectionDiffusion():
 		#---------------------------------------------------------
 		#Write the Function to minimize
 		print ("--- Creating Variational Equation")
-		F = ((u - u_n) / k)*v*dx + dot(w, grad(u))*v*dx	+ D*dot(grad(u), grad(v))*dx - source*v*dx
+		Theta = Constant(0.5)
+		F = ((u - u_n) / k)*v*dx + Theta*dot(w, grad(u))*v*dx	+ Theta*D*dot(grad(u), grad(v))*dx + Theta*dot(w, grad(u_n))*v*dx	+ Theta*D*dot(grad(u_n), grad(v))*dx - source*v*dx
 		print ("--- Separating LHS and RHS")
 		a1 = lhs(F)
 		L1 = rhs(F)

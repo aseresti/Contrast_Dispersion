@@ -142,5 +142,5 @@ if __name__=="__main__":
     
     #* call the class
     [VelocityAve, VelocityCent] = ContrastDispersion(args).main()
-    print('The sectional average velocity is: ', VelocityAve)
+    #print('The sectional average velocity is: ', VelocityAve)
     print('The centerline velocity is:', VelocityCent)

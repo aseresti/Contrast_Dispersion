@@ -91,11 +91,11 @@ class OasisAdvectionDiffusion():
 		id_in[:] = info['inlet_id']
 		id_out=[]
 		id_out[:] = info['outlet_ids']
- 		
+
 		print ("-"*75)
 		#Define time-dependent Contrast Boundary Condition #Eslami+, JBioMechEng, 2019
 		print ("--- Creating Expression for Contrast Concentration Profile.")
-		ConcentrationEquation = Expression("(cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/(2*Td)))))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
+		ConcentrationEquation = Expression("(cmin+0.5*(cmax-cmin)*(1-cos(pi*((t-Ts)/(Td)))))",cmin=0.0,cmax=1.0,t=0.0,Ts=0.0,Td=self.Args.PeriodContrast,degree=2)
 		
 		#Assing the inflow boundary for the concentration
 		print ("--- Assigning Wall Boundary Condition.")
@@ -131,10 +131,10 @@ class OasisAdvectionDiffusion():
 			Progress_ = (t/(self.Args.Period*self.Args.ContrastPeriodFactor))*100
 			print ("Current Time is: %.05f. Completed: %s"%(t,Progress_))
 			t += self.Args.dt
-   
+
 			#Update the Contrast Inflow 
 			ConcentrationEquation.t = t	
- 
+
 			#Load the Velocity File Series from CFD simulation
 			f_u = HDF5File(MPI.comm_world, self.Args.InputFileName, "r")
 			f_u.read(w,f"/velocity/vector_{i%self.Args.NumberOfTimesteps}")
@@ -173,7 +173,7 @@ if __name__=="__main__":
 	
 	parser.add_argument('-EndStep', '--EndStep', type=int, required=False, default=1000, dest="EndStep",help="The ending timestep for CFD simulation.")
 	
-	parser.add_argument('-Increment', '--Increment', type=int, required=False, default=1., dest="Increment",help="The Increment Between Timestep Saving.")
+	parser.add_argument('-Increment', '--Increment', type=int, required=False, default=15., dest="Increment",help="The Increment Between Timestep Saving.")
 	
 	parser.add_argument('-MeshFileName', '--MeshFileName', type=str, required=True, dest="MeshFileName",help="The filename that contains the mesh file")
 
