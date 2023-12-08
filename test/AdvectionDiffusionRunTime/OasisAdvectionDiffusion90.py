@@ -91,7 +91,7 @@ class OasisAdvectionDiffusion():
 		id_in[:] = info['inlet_id']
 		id_out=[]
 		id_out[:] = info['outlet_ids']
-
+ 		
 		print ("-"*75)
 		#Define time-dependent Contrast Boundary Condition #Eslami+, JBioMechEng, 2019
 		print ("--- Creating Expression for Contrast Concentration Profile.")
@@ -109,7 +109,7 @@ class OasisAdvectionDiffusion():
 		#---------------------------------------------------------
 		#Write the Function to minimize
 		print ("--- Creating Variational Equation")
-		Theta = Constant(0.5) #Crank-Nikolson Scheme
+		Theta = Constant(0.5)
 		F = ((u - u_n) / k)*v*dx + Theta*dot(w, grad(u))*v*dx	+ Theta*D*dot(grad(u), grad(v))*dx + Theta*dot(w, grad(u_n))*v*dx	+ Theta*D*dot(grad(u_n), grad(v))*dx - source*v*dx
 		print ("--- Separating LHS and RHS")
 		a1 = lhs(F)
@@ -131,10 +131,10 @@ class OasisAdvectionDiffusion():
 			Progress_ = (t/(self.Args.Period*self.Args.ContrastPeriodFactor))*100
 			print ("Current Time is: %.05f. Completed: %s"%(t,Progress_))
 			t += self.Args.dt
-
+   
 			#Update the Contrast Inflow 
 			ConcentrationEquation.t = t	
-
+ 
 			#Load the Velocity File Series from CFD simulation
 			f_u = HDF5File(MPI.comm_world, self.Args.InputFileName, "r")
 			f_u.read(w,f"/velocity/vector_{i%self.Args.NumberOfTimesteps}")
@@ -163,7 +163,7 @@ if __name__=="__main__":
 	
 	parser.add_argument('-Period', '--Period', type=float, required=False, default=1.0, dest="Period",help="The duration of one cardiac cycle.")
 	
-	parser.add_argument('-ContrastPeriodFactor', '--ContrastPeriodFactor', type=float, required=False, default=35.0, dest="ContrastPeriodFactor",help="The duration of the contrast bolus injection to peak contrast as a multiple of Period. Default is 5 (i.e., 5*Period)")
+	parser.add_argument('-ContrastPeriodFactor', '--ContrastPeriodFactor', type=float, required=False, default=90.0, dest="ContrastPeriodFactor",help="The duration of the contrast bolus injection to peak contrast as a multiple of Period. Default is 5 (i.e., 5*Period)")
         
 	parser.add_argument('-DiffusionCoefficient', '--DiffusionCoefficient', type=float, required=False, default=1.0, dest="DiffusionCoefficient",help="The diffusivity coefficient. Default is 0.04, which assumes Schmit Number (nu/D) of 1.")
 
@@ -173,13 +173,13 @@ if __name__=="__main__":
 	
 	parser.add_argument('-EndStep', '--EndStep', type=int, required=False, default=1000, dest="EndStep",help="The ending timestep for CFD simulation.")
 	
-	parser.add_argument('-Increment', '--Increment', type=int, required=False, default=20., dest="Increment",help="The Increment Between Timestep Saving.")
+	parser.add_argument('-Increment', '--Increment', type=int, required=False, default=20, dest="Increment",help="The Increment Between Timestep Saving.")
 	
 	parser.add_argument('-MeshFileName', '--MeshFileName', type=str, required=True, dest="MeshFileName",help="The filename that contains the mesh file")
 
 	parser.add_argument('-OutputFolder', '--OutputFolder', type=str, required=False, default='results_AdvectionDiffusion', dest="OutputFolder", help="The output folder to store the results")
 
-
+ 
 	args=parser.parse_args()
 	OasisAdvectionDiffusion(args).Main()
 	

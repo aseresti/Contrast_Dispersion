@@ -110,7 +110,7 @@ class OasisAdvectionDiffusion():
 		#Write the Function to minimize
 		print ("--- Creating Variational Equation")
 		Theta = Constant(0.5)
-		F = ((u - u_n) / k)*v*dx + Theta*dot(w, grad(u))*v*dx	+ Theta*D*dot(grad(u), grad(v))*dx + Theta*dot(w, grad(u_n))*v*dx	+ Theta*D*dot(grad(u_n), grad(v))*dx - source*v*dx
+		F = ((u - u_n) / k)*v*dx + Theta*dot(w, grad(u))*v*dx + Theta*D*dot(grad(u), grad(v))*dx + Theta*dot(w, grad(u_n))*v*dx	+ Theta*D*dot(grad(u_n), grad(v))*dx - source*v*dx
 		print ("--- Separating LHS and RHS")
 		a1 = lhs(F)
 		L1 = rhs(F)
