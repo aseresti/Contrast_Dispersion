@@ -7,7 +7,7 @@ In this section the results of our several tests on different phantoms are prese
 In this section we tried to implement the CFD and Advection Diffusion simulations on a straight pipe. The final goal is to calculate velocity using the Contrast Dispersion method presented by Eslami 2022. Our implementation contains of first generating the mesh of a straight pipe. The mesh is generated on SimVascular open source software. On SimVascular the Global Max Edge Size was assigned ${\color{lightblue} \scriptstyle 0.15 }$ and the final mesh was created with ${\color{lightblue} \scriptstyle 2,612,769}$ number of elements. Figure 1 presents the mesh of the straight pipe used in our simulations. This mesh is along the x-axis and witha length of 81 cm bounding from ${\color{lightblue} \scriptstyle x \in [-9, 72] cm}$. The diameter of the pipe is ${\color{lightblue} \scriptstyle d = 3 cm}$.</span> In the next step, we assign a velocity to the CFD simulations which are run using Oasis solver on Niagara. In the next step we run the advection diffusion simulation using fenics and running on a hard drive at CIMBL. Finally, we use our implementation of the contrast disperssion method to acquire the mean velocity of the fluid. The followings are the tests that we have run on the straight pipe.
 
 <center>
-  <img src="../assets/Screen Shot 2023-10-30 at 11.04.02 AM.png" alt="Straight Pipe Mesh" width="400"/>
+  <img src="../../assets/Figures/Screen Shot 2023-10-30 at 11.04.02 AM.png" alt="Straight Pipe Mesh" width="400"/>
 
   <span style="font-size: 10; color:#8df7cd">fig. 1</span>
 </center>
@@ -23,7 +23,7 @@ In which the $\color{lightblue} \scriptstyle c_{min} = 0.0$,${\color{lightblue} 
 
 <center>
 
-|<img src="../assets/Figure_1_Inflow.png" alt="Inflow for 5 cycle" width="450"> |<img src="../assets/Figure_2_Inflow.png"  alt="Inflow for 20 cycle" width="450"> |
+|<img src="../../assets/Figures/Figure_1_Inflow.png" alt="Inflow for 5 cycle" width="450"> |<img src="../assets/Figure_2_Inflow.png"  alt="Inflow for 20 cycle" width="450"> |
 |--- |--- |
 |<center>a</center>|<center>b</center>|
 
@@ -34,7 +34,7 @@ Through doing several simulations with varying run-time from 5, 10, 20 to 30, in
 
 <center>
 
-|<img src="../assets/Re500_5cycle.png" alt ="Re500_5Cycle"> |<img src="../assets/Re500_10cycle.png" alt ="Re500_5Cycle"> |<img src="../assets/Re500_20cycle.png" alt ="Re500_5Cycle"> |<img src="../assets/Re500_30cycle.png" alt ="Re500_5Cycle"> |
+|<img src="../../assets/Figures/Re500_5cycle.png" alt ="Re500_5Cycle"> |<img src="../../assets/Figures/Re500_10cycle.png" alt ="Re500_5Cycle"> |<img src="../../assets/Figures/Re500_20cycle.png" alt ="Re500_5Cycle"> |<img src="../../assets/Figures/Re500_30cycle.png" alt ="Re500_5Cycle"> |
 |--- |--- |--- |--- |
 |<center>a</center>|<center>b</center>|<center>c</center>|<center>d</center>|
 
@@ -59,7 +59,7 @@ In a straight pipe, we ran the CFD simulation for a reynold's number of 500 and 
 
 <center>
 
-![Alt text](../assets/Re1500_20cycle.png)
+![Alt text](../../assets/Figures/Re1500_20cycle.png)
 
 <span style="font-size: 10; color:#8df7cd">fig. 4. </span>
 </center>
@@ -69,7 +69,7 @@ In a straight pipe, we ran the CFD simulation for a reynold's number of 500 and 
 Learning that we need to consider the centerline value of the contrast concentration in the straight pipe simulations, we move towards the stenotic pipe simulations. The stenotic pipe mesh is presented in the figure below. This pipe has the same length as the sraight pipe for $\color{lightblue} \scriptstyle x \in [-9,72]$ and the stenosis happens at $\color{lightblue} \scriptstyle x = 0$. I ran several simulation changing the Reynold's number from 100 to 1000. It is expected that 20 run-time cycle is not sufficient for all of the simulations with different Re #.
 
 <center>
-  <img src="../assets/Screen Shot 2023-11-07 at 2.04.41 PM.png"  alt="Stenotic Pipe Mesh" width="400"/>
+  <img src="../../assets/Figures/Screen Shot 2023-11-07 at 2.04.41 PM.png"  alt="Stenotic Pipe Mesh" width="400"/>
 
   <span style="font-size: 10; color:#8df7cd">fig. 5</span>
 </center>
@@ -105,16 +105,40 @@ However, the results from simulations with different time steps suggest that the
 
 |Re#|<center>temporal and spatial attenuation curve |
 |--- |--- |
-|100|![alt text](../assets/stenotic_Re100_70cyc.png)|
-|200|![Alt text](../assets/stenotic_Re200_40cyc.png)|
-|300|![Alt text](../assets/stenotic_Re300_30cyc.png)|
-|400|![Alt text](../assets/stenotic_Re400_20cyc.png)|
-|500|![Alt text](../assets/stenotic_Re500_20cyc.png)|
-|600|![Alt text](../assets/stenotic_Re600_20cyc.png)|
-|700|![Alt text](../assets/stenotic_Re700_17cyc.png)|
-|800|![Alt text](../assets/stenotic_Re800_17cyc.png)|
-|900|![Alt text](../assets/stenotic_Re900_17cyc.png)|
-|1000|![Alt text](../assets/stenotic_Re1000_16cyc.png)|
+|100|![alt text](../../assets/Figures/stenotic_Re100_70cyc.png)|
+|200|![Alt text](../../assets/Figures/stenotic_Re200_40cyc.png)|
+|300|![Alt text](../../assets/Figures/stenotic_Re300_30cyc.png)|
+|400|![Alt text](../../assets/Figures/stenotic_Re400_20cyc.png)|
+|500|![Alt text](../../assets/Figures/stenotic_Re500_20cyc.png)|
+|600|![Alt text](../../assets/Figures/stenotic_Re600_20cyc.png)|
+|700|![Alt text](../../assets/Figures/stenotic_Re700_17cyc.png)|
+|800|![Alt text](../../assets/Figures/stenotic_Re800_17cyc.png)|
+|900|![Alt text](../../assets/Figures/stenotic_Re900_17cyc.png)|
+|1000|![Alt text](../../assets/Figures/stenotic_Re1000_16cyc.png)|
+
+
+</center>
+
+<h3 style="text-align:left; color: #cf50e6; font-family: times new roman;"> c) Outflow study </h3>
+Added later: After studying the outflow centerline contrast concentration, it seems that the lowest error in the calculation of the mean velocity happens when the contrast concentration of the outflow centerline is 25% of the maximum inflow concentration. Here is 0.25. As a result we take this as to take the right simulation end-time.
+
+
+<center style="color:lightgreen">
+  <span style="font-size: 10; color:#8df7cd">Table II. calculated velocity based on outflow concentration</span>
+
+|<center>Re # |<center>assigned velocity (cm/s)|<center> run-time (s) |<center> x-peak time (25%) (s) |<center> Calculated Velocity (cm/s) |Error (%) |
+|--- |--- |---|--- |--- |--- |
+|<center>100 |<center>**1.33** |<center>90 |<center>90 |<center> **1.390489** |<center> 4.5
+|<center>200 |<center>**2.66** |<center>50 |<center>45 |<center> **2.865046** |<center> 7.7
+|<center>300 |<center>**3.998**|<center>35 |<center>30 |<center>**4.029085**  |<center> 0.7
+|<center>400 |<center>**5.33** |<center>35 |<center>25 |<center>**5.388151**  |<center> 1.09
+|<center>500 |<center>**6.66** |<center>20 |<center>18 |<center>**6.821945**  |<center> 2.4
+|<center>600 |<center>**7.997**|<center>20 |<center>16.6|<center>**8.073577** |<center> 0.95
+|<center>700 |<center>**9.33** |<center>20 |<center>15.2|<center>**9.339845** |<center> 0.10
+|<center>800 |<center>**10.66**|<center>20 |<center>15 |<center> **10.652102**|<center> 0.07
+|<center>900 |<center>**11.99**|<center>20 |<center>14 |<center>**11.992367** |<center> 0.01
+|<center>1000|<center>**13.33**|<center>20 |<center>13.4|<center>**13.306969**|<center> 7.5
+|Total Error |                 |           |            |                     |<center> **2.502**
 
 
 </center>
