@@ -31,9 +31,9 @@ class ContrastDispersion():
         
         #* Read xdmf files from results_AdvectionDiffusion Folder
         print('--- Reading the input meshes within the input folder')
-        NFiles = 20 # >>> Number of temporal samples
-        [MeshDict, N, PeakMesh] = ReadResults(self.args.InputFolder, 'xdmf', NFiles) # >>> Reading the Mesh Files and storing them into a dictionary
-        print('--- The number of read files within the input folder is: ',N)
+        NFiles = 1000
+        [MeshDict, N] = ReadResults(self.args.InputFolder, 'xdmf', NFiles) # >>> Reading the Mesh Files and storing them into a dictionary
+        print('--- The number of files within the input folder is: ',N)
         print('-'*25)
 
         #* Getting Bounds of the mesh along the x-axis
@@ -61,6 +61,29 @@ class ContrastDispersion():
             [SectionAverage, CenterVal] = Slice(mesh, normal, origin_outlet)
             TempAttCent_outlet.append(CenterVal)
         
+
+        desired_outlet_concentration = 0.22 # >>> 25% of the max input concentration
+        
+        for time, concentration in zip(np.arange(0,N,int(N/NFiles)), TempAttCent_outlet):
+            if concentration >= 0:
+                delay = time
+            if concentration >= desired_outlet_concentration:
+                peak = time
+                break
+            #elif concentration >= desired_outlet_concentration:
+            #    print("WARNING: The running-time of the Advection-Diffusion simulation was not Enough for the outlet concentration to reach 25% of the max inlet concentration")
+            #    peak = N-1
+        CycleLength = self.args.CycleDuration/self.args.Increment # >>> Number of Time Steps in a Cycle
+        print("---")
+        print("The transition delay from inlet to outlet is: ", delay/CycleLength)
+        print("Peak mesh (22% of the input maximum) happens at: ", peak/CycleLength)
+        print("concentration at the reported time: ", concentration)
+        print("---")
+        PeakMesh = MeshDict[peak]
+
+        
+
+        
         #* Get space-attenuation curve
         NSlice = 50 # >>>Number of slices along the vessel
         interval = (max_val - min_val)/NSlice # >>> The interval between slices along the lumen
@@ -82,10 +105,9 @@ class ContrastDispersion():
 
         #* fit linear model on data
         print('--- Fitting a linear model on temporal and spatial data')
-        lag = 6 # >>> Time lag of the contrast diffusion
+        lag = 200 # >>> Time lag of the contrast diffusion
         lag_x = 20
-        CycleLength = self.args.CycleDuration/self.args.Increment # >>> Number of Time Steps in a Cycle
-        t = np.arange(0,N,int(N/NFiles))/CycleLength # >>>Time (s)
+        t = np.arange(0,N, int(N/NFiles))/CycleLength # >>>Time (s)
         t_new = t[lag:-lag] # >>> Applying time lag on the time array
         TempAttAve_new = np.array(TempAttAve[lag:-lag])
         TempAttCent_new = np.array(TempAttCent[lag:-lag])
