@@ -97,6 +97,16 @@ def ReadResults(foldername,ext,NFiles):
     MeshDict = dict()
     for i in range(0,N,int(N/NFiles)):
         MeshDict[counter] = ReadXDMFFile(filenames[i])
+        counter += int(N/NFiles)
+    #PeakMesh = ReadXDMFFile(filenames[N-1])
+    return MeshDict, N
+
+def ReadResults2(foldername,ext):
+    filenames = get_order(foldername, ext)
+    N = len(filenames)
+    counter = 0
+    MeshDict = dict()
+    for i in range(0,N):
+        MeshDict[counter] = ReadXDMFFile(filenames[i])
         counter += 1
-    PeakMesh = ReadXDMFFile(filenames[680])
-    return MeshDict, N, PeakMesh
+    return MeshDict, N
