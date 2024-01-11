@@ -126,19 +126,19 @@ Added later: After studying the outflow centerline contrast concentration, it se
 <center style="color:lightgreen">
   <span style="font-size: 10; color:#8df7cd">Table II. calculated velocity based on outflow concentration</span>
 
-|<center>Re # |<center>assigned velocity (cm/s)|<center> run-time (s) |<center> x-peak time (25%) (s) |<center> Calculated Velocity (cm/s) |Error (%) |
-|--- |--- |---|--- |--- |--- |
-|<center>100 |<center>**1.33** |<center>90 |<center>90 |<center> **1.390489** |<center> 4.5
-|<center>200 |<center>**2.66** |<center>50 |<center>45 |<center> **2.865046** |<center> 7.7
-|<center>300 |<center>**3.998**|<center>35 |<center>30 |<center>**4.029085**  |<center> 0.7
-|<center>400 |<center>**5.33** |<center>35 |<center>25 |<center>**5.388151**  |<center> 1.09
-|<center>500 |<center>**6.66** |<center>20 |<center>18 |<center>**6.821945**  |<center> 2.4
-|<center>600 |<center>**7.997**|<center>20 |<center>16.6|<center>**8.073577** |<center> 0.95
-|<center>700 |<center>**9.33** |<center>20 |<center>15.2|<center>**9.339845** |<center> 0.10
-|<center>800 |<center>**10.66**|<center>20 |<center>15 |<center> **10.652102**|<center> 0.07
-|<center>900 |<center>**11.99**|<center>20 |<center>14 |<center>**11.992367** |<center> 0.01
-|<center>1000|<center>**13.33**|<center>20 |<center>13.4|<center>**13.306969**|<center> 7.5
-|Total Error |                 |           |            |                     |<center> **2.502**
+|<center>Re # |<center>assigned velocity (cm/s)|<center> run-time (s) |<center> x-peak time (22%) (s) |<center> Calculated Velocity (cm/s) |Error (%) | Delay (s)| Percent Delay (%)|
+|--- |--- |---|--- |--- |--- |--- |--- |
+|<center>100 |<center>**1.33** |<center>90 |<center>85.48|<center>**1.207350** |<center> 9.22 |<center> 57.5 |63.88
+|<center>200 |<center>**2.66** |<center>50 |<center>44.28|<center>**2.525368** |<center> 5.06 |<center> 29.65|65.88
+|<center>300 |<center>**3.998**|<center>35 |<center>30.16|<center>**3.636046** |<center> 9.05 |<center> 19.45|64.83
+|<center>400 |<center>**5.33** |<center>35 |<center>25.34|<center>**4.836614** |<center> 9.25 |<center> 15.30|61.20
+|<center>500 |<center>**6.66** |<center>20 |<center>17.72|<center>**6.500931** |<center> 2.38 |<center> 11.60|64.44
+|<center>600 |<center>**7.997**|<center>20 |<center>15.78|<center>**7.755878** |<center> 3.01 |<center> 9.90 |59.63
+|<center>700 |<center>**9.33** |<center>20 |<center>14.42|<center>**9.045131** |<center> 3.05 |<center> 8.52 |56.05
+|<center>800 |<center>**10.66**|<center>20 |<center>13.36|<center> **10.461445**|<center> 1.86|<center> 7.60 |50.66
+|<center>900 |<center>**11.99**|<center>20 |<center>12.56|<center>**11.8809722**|<center> 0.90|<center> 6.90 |49.28
+|<center>1000|<center>**13.33**|<center>20 |<center>13.4|<center>**13.313141**  |<center> 0.12 |<center> 6.25 |46.64
+|Total Error |                 |           |            |                     |<center> **2.502**|         |     
 
 
 </center>
