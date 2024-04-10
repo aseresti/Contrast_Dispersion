@@ -64,7 +64,7 @@ class ImageAnalysisMovingAverageAlongCL():
             center = CLfile.GetPoint(p)
             Radius = SphereRadiusArray[p]
             PixelValueAvg[p] = ImageAnalysisMovingAverageAlongCL(args).SphereClipp(center,Radius)
-           
+
         #Project the AveragePixelValue to the centerline and a text file
         PixelValueAvgVTK = numpy_to_vtk(PixelValueAvg)
         PixelValueAvgVTK.SetName("AvgPixelValue")

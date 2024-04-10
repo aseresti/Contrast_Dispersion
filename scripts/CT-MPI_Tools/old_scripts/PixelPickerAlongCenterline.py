@@ -41,10 +41,10 @@ class PixelPickerAlongCenterline():
             PointScalar_ = np.array([])
             progress_ = PrintProgress(i, Nend, progress_)
             for j in range(section_.GetNumberOfPoints()):
-                 point_ = section_.GetPoint(j)
-                 pointId_ = Image.FindPoint(point_)
-                 intensity_ = Image.GetPointData().GetScalars().GetValue(pointId_)
-                 PointScalar_ = np.append(PointScalar_, intensity_)
+                point_ = section_.GetPoint(j)
+                pointId_ = Image.FindPoint(point_)
+                intensity_ = Image.GetPointData().GetScalars().GetValue(pointId_)
+                PointScalar_ = np.append(PointScalar_, intensity_)
             
             Section_Averaged_ = np.average(PointScalar_)
 

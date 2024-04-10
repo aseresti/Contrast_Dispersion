@@ -61,7 +61,7 @@
 
 \begin{frontmatter}
 
-\title{Contrast Dispersion Title \tnoteref{tnote1}}%
+\title{Non-Invasive Estimation of Coronary Velocity: A Computational Framework for Computed Tomography Perfusion Imaging \tnoteref{tnote1}}%
 
 
 \author[1]{Anahita \snm{A. Seresti}}
@@ -82,13 +82,14 @@
 
 \begin{abstract}
 %%%
-\textbf{Background and Objectives}: Contrast Dispersion
+    
+\textbf{Background and Objectives}: Ischemic heart disease (IHD) results from insufficient blood flow to the myocardium, primarily caused by coronary artery stenosis. Existing clinical methods rely on invasive procedures for assessing coronary hemodynamics. Computational methods, particularly those based on coronary CT angiography (cCTA) and CT myocardial perfusion imaging (CT-MPI), offer non-invasive alternatives.
 
-\textbf{Methods}: Contrast Dispersion 
+\textbf{Methods}: This study introduces a computational framework leveraging CT-MPI for estimating blood velocity in stenosed coronary arteries under steady flow conditions. The framework integrates diverse simulation techniques, including computational fluid dynamics (CFD) and advection-diffusion simulations. 
 
-\textbf{Results}: Contrast Dispersion
+\textbf{Results}: Results demonstrate promising agreement between estimated and assigned velocities, suggesting the potential of this method for non-invasive coronary flow assessment. The observed dependence on Reynolds number highlights the need for further refinement and investigation into estimation methods.
 
-\textbf{Conclusions}: Contrast Dispersion
+\textbf{Conclusions}: Future work may involve exploring advanced models to mitigate biases and enhance accuracy. Ultimately, this research contributes to the potential of non-invasive assessment of blood flow dynamics from routine scans, with implications for improved diagnosis and targeted therapeutic interventions.
 %%%%
 \end{abstract}
 
@@ -97,8 +98,9 @@
 % MSC codes here, in the form: \MSC code \sep code
 % or \MSC[2008] code \sep code (2000 is the default)
 % Keywords
-\KWD Contrast Dispersion \sep Contrast Dispersion\sep Contrast Dispersion\sep Contrast Dispersion
+\KWD Coronary Artery Imaging \sep CT Myocardial Perfusion Imaging \sep Computational Fluid Dynamics \sep Blood Velocity Estimation \sep Non-Invasive Coronary Flow Assessment
 \end{keyword}
+
 
 \end{frontmatter}
 
@@ -106,72 +108,110 @@
 
 %% main text
 
- %--------------------------------------- Introduction -----------------------------------------
+%--------------------------------------- Introduction -----------------------------------------
 
 \section{Introduction}
-Contrast Dispersion
+Ischemic heart disease (IHD) arises from inadequate blood flow to the myocardium, primarily due to coronary artery stenosis. While coronary artery anatomy plays a crucial role in understanding blood perfusion, it often fails to directly correlate with the pathophysiology of stenosis causing flow restriction. Consequently, the current clinical standard for assessing the physiological effects of coronary disease on hemodynamics relies on invasive pressure catheterization during angiography. However, the lack of a routine non-invasive flow assessment remains a significant challenge, hindering our understanding of the underlying mechanisms of coronary flow limitations \cite{al2018percutaneous, toth2013fractional}.
+
+Computational methods based on coronary CT angiography (cCTA) offer a promising avenue for capturing hemodynamic features of the blood flow in coronary arteries. By leveraging cCTA-derived coronary geometry, computational fluid dynamics (CFD) simulations enable comprehensive assessments of hemodynamics, including pressure, velocity, and wall shear stress \cite{assen2020computed,papamanolis2021myocardial,bove2003computational,he2022medical,khan2021low}. However, the accuracy of these assessments hinges on accurate boundary conditions and flow split assumptions \cite{kung2011vitro,cook2017diagnostic}.
+
+Another potentially valuable CT-based technique for visualizing and quantifying coronary blood flow is CT myocardial perfusion imaging (CT-MPI). Although unexplored for this purpose, the dynamic transit of contrast through the coronary arteries holds promise for calculating mean blood velocity. In 2015, Eslami [1] pioneered the transluminal attenuation flow encoding (TAFE) method, utilizing experimental phantom CT images to estimate blood velocity from contrast transition along a tapered vessel. Assuming unidirectional flow and dominant convective forces, TAFE calculates mean flow rate. Eslami subsequently introduced a CFD-based correction factor to further refine accuracy [2]. While their studies focused on experimental data under laminar flow conditions, we have demonstrated the potential of this approach under a wider range of flow conditions, suggesting its applicability to CT-MPI-based applications.
+
+In this study, we present a computational framework for estimating blood velocity in stenosed coronary arteries with steady flow based on contrast agent transition. Our pipeline encompasses diverse simulation techniques to model blood flow, contrast agent transit, and velocity calculation. Following a detailed description of the theoretical background and simulation setup, we validate our method by comparing calculated velocities with pre-assigned values under steady flow conditions. Finally, we conclude by discussing the implications and potential future directions of this work.
+
 %--------------------------------------- METHODOLOGY -----------------------------------------
 \section{Methods}
 
 %------------- Problem Statement ----------------------
 \subsection{Contrast Transport and Blood Flow}
-The implementation of the TAFE method was discussed by detail in Eslami et al. [2015, 2022]. In short, two partial differential equations are the key components of implementation of this method: Navier-Stokes equations, simulating the blood flow assuming as a newtonian and incompressable fluid, and Advection-Diffusion equation, modeling the contrast agent transport in the blood. The governing equations of the Navier-Stokes equation is presented below:
+To rigorously validate the accuracy and robustness of our velocity estimation pipeline, we established a multi-step computational framework simulating both blood flow and contrast agent dispersion within a stenosed arterial segment. This framework encompassed two key components:
+%Figure 0
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.95\textwidth]{./Figures/Figure1_StenosisModel.png}
+    \caption{Eccentric Stenosis Geometry}
+    \label{Figure:stenosed_geometry}
+    \end{figure*}
+\begin{enumerate}
+    \item \textit{Stenosed Vessel Geometry}: This study employed a three-dimensional, idealized model of a non-axisymmetric stenosis to represent the complex geometric variations observed in diverse vasculatures. The modeled artery extended along the x-axis from -9 cm to 72 cm, with the stenosis located at x = 0 causing a 75\% reduction in the cross-sectional area. Notably, the stenosis throat incorporated an eccentricity to promote flow instability without requiring additional velocity field perturbations. The specific geometry is depicted in Figure ~\ref{Figure:stenosed_geometry}. This configuration was inspired by a prior study investigating turbulent flow transition in stenosed arteries [reference].
+    \item \textit{Modeling blood flow in stenosed arteries}: In order to implement our pipeline of flow and contrast transition in the stenosed artery, two partial differential equations are the key components: Navier-Stokes equations, simulating the blood flow assuming a newtonian and incompressible fluid [], and Advection-Diffusion equation, modeling the contrast agent transport in the blood []. The governing equations of the Navier-Stokes equation is presented below:
+        \begin{equation}
+            \dfrac{\partial U}{\partial t} + (U. \nabla)U + \dfrac{\nabla P}{\rho} = \nu \nabla^2U,\quad \quad \quad \nabla.U=0
+        \end{equation}
+        Where $U$ is the time-dependent velocity vector field, $P$ is the pressure field inside the geometry domain, $\rho$ is the blood flow density, and $\nu$ is the dynamic viscosity. A Neumann type boundary condition was assigned to the inlet of the vessel and a non-slip boundary condition ($u=0$) was assigned to the walls. To encompass the range of flow regimes encountered in diverse arterial beds, we varied the Reynolds number (Re) from 100 to 1000 in increments of 100. This parameter selection captures the spectrum of physiological flow conditions observed in coronaries and cerebral arteries (Re ~ 100-300), carotid arteries (Re ~ 400-600), and the aorta (Re ~ 700-1000). By simulating across this extensive Re range, our investigation encompasses the complex, multi-regime flow dynamics found in human vasculature. 
+    \item \textit{Modeling contrast agent transition in coronaries}: The next crucial step in our framework involves simulating the spatiotemporal evolution of the contrast agent concentration within the vasculature. This necessitates incorporating the complex interplay between advection, driven by the bulk blood flow, and diffusion, arising from microscopic Brownian motion. To adequately capture this interplay, we employ the advection-diffusion equation, a fundamental partial differential equation widely used in fluid dynamics and mass transport phenomena. In our context, the advection-diffusion equation takes the following form, where $C(x,y,z;t)(\frac{ml}{mg})$ represents the contrast agent concentration at spatial location $(x,y,z)$ and time t:
+        \begin{equation}
+            \dfrac{\partial C}{\partial t} + (U.\nabla )C = D\nabla ^2C
+        \end{equation}
+        Here, $U(x,y,z)$ denotes the blood velocity at the spatial location $(x,y,z)$, which derives the transport of contrast agent in the blood and is determined by the preceding CFD simulation. D is the diffusion coefficient, which quantifies the rate of contrast spread due to random molecular motion, with a value of 0.04 cm²/s as reported by []. To assign the inlet boundary conditions of the contrast agent we used the following equation []:
+        \begin{equation}
+            C_{inlet} = C_{min} + 0.5(C_{max}-C_{min})[1-cos({\pi}\frac{t-T_s}{T_d})],
+        \end{equation}
+        where $C_{min}$ and $C_{max}$ are the minimum and maximum values of the contrast in the inlet of the artery, chosen to be 0 and 1 respectively. And $T_s$ is the time at which the bolus arrives and $T_d$ is time for which the advection-diffusion is considered.
+    \item \textit{Contrast Dispersion}: Following the simulations, we extract mean velocity information from the observed contrast transition. Based on the simulated contrast bolus, we perform an inverse estimation to compute the centerline velocity along the arterial segment. While solving the full contrast dispersion equation would be ideal, the inherent limitations of CT-MPI in terms of spatial resolution and noise hinder the accurate reconstruction of the 3D velocity field, particularly in the context of coronary arteries. Therefore, to account for these limitations, we adopted a simplified approach assuming unidirectional flow with negligible radial dispersion of contrast. This allowed us to estimate the average velocity across the arterial lumen, albeit sacrificing the full spatiotemporal resolution offered by the advection-diffusion equation:
+        \begin{equation}
+            v_{mean} = \dfrac{\frac{\partial C}{\partial t}}{-\frac{\partial C}{\partial x}}
+        \end{equation}
+        This equation relates the centerline velocity ($V$) at a specific axial location ($x$) along the artery to the temporal and spatial variations in contrast concentration ($C$) observed during the simulation. The numerator, representing the rate of change in contrast over time ($\frac{\partial C}{\partial t}$), is obtained by computing the instantaneous derivative of the time-intensity curve at the desired location. Likewise, the denominator, reflecting the spatial gradient of contrast along the centerline ($\frac{\partial C}{\partial x}$), is calculated by taking the derivative of the contrast profile with respect to the axial coordinate at the peak contrast intensity.
 
-\begin{equation}
-\dfrac{\partial U}{\partial t} + (U. \nabla)U + \dfrac{\nabla P}{\rho} = \nu \nabla^2U,\quad \quad \quad \nabla.U=0
-\end{equation}
-
-Where $U$ is the time-dependant velocity vector field, $P$ is the pressure field inside the geometry domain, $\rho$ is the blood flow density, and $\nu$ is the dynamic viscosity. A neuman type boundary condition was assigned to the inlet of the vessel and a non-slip boundary condition ($u=0$) was assigned to the walls. The advection-diffusion equation is defined as below where $C(\frac{mg}{ml})$ is the contrast agent concentration: 
-
-\begin{equation}
-\dfrac{\partial C}{\partial t} + (U.\nabla )C = D\nabla ^2C
-\end{equation}
-
-Eslami et al [2022] in their work presented an equation for the quantitative flow rate estimate $Q_{TAFE}$ of the flow along the vessel. The equation was established based on assuming a unidirectional flow with minimal lateral flow distortion and the domainance advection in comparison to the diffusion. The method then suggest to use the cumulative volume at the axial locations down the vessel to find $Q_{TAFE}$. However, we used the same strategy to validate against the $v_{mean}$, the mean blood velocity along the centerline direction of the vessel.
-
-\begin{equation}
-v_{mean} = \dfrac{\frac{\partial C}{\partial t}}{-\frac{\partial C}{\partial x}}
-\end{equation}
-
-The numerator of the above fraction, $\frac{\partial C}{\partial t}$ is the temporal derivative of the time-attenuation curve (TAC) with the $\frac{HU}{s}$ unit, and $\frac{\partial C}{\partial x}$ can be found with takeng the derivative of the contrast at the centerline of the vessel with respect to the centerline direction with the unit of $\frac{HU}{cm}$.
+\end{enumerate}
 
 %---------------- Simulations Setup ------------------------
 \subsection{Simulations Setup}
-\textit{CFD simulations} The direct numerical solution of the steady flow along a 3D non-axisymetric stenotic model were previously presented by M. Owais Khan et al. [2018]. Briefly, to characterize the turbulance transition in a stenosed artery we implemented the CFD simulations for Navier-Stokes equation on Oais flow solver [] for $Re=100-1000$. We used a second-order polynomial function for velocity and a first-order polynomial function for pressure. Figure 1 presents the axial and cross sectional view of the stenosed artery. The geometry was meshed in 6000 triangular elements. The simulation was run for 1 second with 10000 time steps. Figure ~\ref{Figure:Results_CFD} depicts the Q-criterion of the turbulance transition along the artery for $Re=100-1000$. 
-
-\textit{Advection Diffusion Simulations} The advection diffusion equation was implemented using the FEniCs framework [] on the output of the CFD simulations. FEniCs is a library to implements PDEs based on the basis of the finite element methods on Python. To assign the inlet boundary conditions of the contrast agent we used the equation presented in Eslami et al. [2015]:
-
-\begin{equation}
-C_{inlet} =  C_{min} + 0.5 \times (C_{max}-C_{min}) \times [1-cos(\pi \times \dfrac{t-T_s}{T_d})]
-\end{equation}
-
-In this simulation $C_{min}$ and $C_{max}$ are the minimum and maximum of the concentration at the inlet. $T_s$ is the time that bolus arrives to the inlet, and $T_d$ is it takes for the bolus to arrive from the inlet to the outlet. In our simulations that we have a varying $Re$, we chose $T_d = 15-80s$. Fig 3 sheds more light on the contrast transition along the vessel.
-
-\textit{Contrast Dispersion Simulations} The next step in our simulation to back-calculate the mean velocity according to waht presented in eq (3). In this simulation we fit a linear regression model to the time-attenuation curve at the inlet of the vessel, and the centerline-attenuation curve at the peak time of the advection diffusion output. The slope of the linear model fitted to each curves represents $\frac{\partial C}{\partial t}$ and $\frac{\partial C}{\partial x}$ respectively.
-
-
-%FIGURE 0
+%FIGURE 1
 \begin{figure*}[!t]
-\centering
-\includegraphics[width=0.8\textwidth]{./Figures/Figure2_Methods_CFD.jpg}
-\caption{The results of implementing CFD simulations in stenosed pipe. changing $Re=100-1000$}
-\label{fig:Results_CFD}
-\end{figure*}
-
+    \centering
+    \includegraphics[width=0.8\textwidth]{./Figures/Figure2_results_CFD.png}
+    \caption{The results of implementing CFD simulations in stenosed pipe. changing $Re=100-1000$}
+    \label{fig:Results_CFD}
+    
+    \end{figure*}
+\textit{CFD simulations} To characterize the onset and nature of turbulence transition in a stenosed artery, we employed direct numerical simulations (DNS) of the steady flow within a non-axisymmetric 3D stenosis model (Khan et al., 2018). Using the Oasis flow solver, we implemented CFD simulations of the Navier-Stokes equations for incompressible Newtonian blood ($\mu = 0.004 Pa*s$, $\rho = 1057 \frac{kg}{m^{3}}$). To accurately capture the evolving turbulent features, time steps were meticulously chosen as $0.0001$ seconds. A pulsatile Womersley profile was applied at the inlet to mimic realistic blood flow, while the outlet boundary conditions were dynamically adjusted through a pressure coupling scheme. The Navier-Stokes equations were solved for blood pressure and velocity using a second-order polynomial interpolation for velocity and a first-order scheme for pressure. The resulting velocity fields were subsequently exported for further analysis in the Advection-Diffusion simulation stage. This DNS approach was repeated across a range of Reynolds numbers ($Re = 100-1000$). The stenosed artery geometry was meshed with approximately 6000 triangular elements. The simulations were done on Niagara supercomputers of the Canada Research Alliance [].
+\textit{Advection Diffusion Simulations} To model the transport of a contrast agent within the fluid flow, we employed the FEniCS framework [reference] to numerically solve the advection-diffusion equation. The velocity field, computed a priori using CFD simulations, was incorporated as the convection velocity within the advection term of the governing equation. The FEniCS framework facilitated the solution of the variational form of the equation using finite element methods. For each time step, the corresponding CFD velocity field was loaded to ensure consistency with the evolving flow dynamics. Inlet boundary conditions were prescribed in accordance with equation #, with $C_{min} = 0$, $C_{max} = 1$, $T_s = 0$, and $T_d$ adjusted between 12 and 85 seconds to accommodate the range of Reynolds numbers investigated. The spatiotemporal evolution of contrast agent concentration along the vessel is visualized in Figure ~\ref{Figure:contast_transition}.
+\textit{Contrast Dispersion Simulations} To quantify the mean velocity within the vessel, we employed a back-calculation procedure based on the advection-diffusion equation (Equation #). This process involved two key steps:
+\begin{enumerate}
+    \item \textit{Extraction of Attenuation Curves} We first extracted the contrast agent's attenuation over time at the inlet of the vessel from the advection-diffusion simulation results, forming the time-attenuation curve. Additionally, we extracted the attenuation profile along the vessel's centerline at the peak time of contrast agent concentration, creating the centerline-attenuation curve.
+    \item \textit{Linear Regression Modeling and Mean Velocity Calculation} Each extracted curve was then subjected to linear regression analysis, establishing a linear relationship between attenuation and the respective independent variable (time for the time-attenuation curve and spatial position for the centerline-attenuation curve). The slopes of the fitted linear models, representing the temporal and spatial concentration gradients ($\frac{\partial C}{\partial t}$ and $\frac{\partial C}{\partial x}$, respectively), were subsequently incorporated into equation # to back-calculate the mean velocity within the vessel.
+\end{enumerate}
+This approach enabled us to leverage the simulated advection-diffusion data to quantify the flow velocity without requiring direct measurement, providing valuable insights into the fluid dynamics within the vessel.
 
 %------------------------------------ RESULTS ------------------------------------------------
 \section{Results}
-%1D Advection Diffusion Equation
-\subsection{CFD Simulation Results}
-
-
-%Figure 3
-%\begin{figure*}[!t]
-%\centering
-%\includegraphics[width=0.95\textwidth]{./Figures/Figure3_AdvectionDiffusion}
-%\caption{PINN solution for $sine$, $tanh$ and $swish$ activation functions for the 1D advection diffusion equation. A) Solution to the 1D advection-diffusion equation with the three activation functions using two neural network layers. Three sensor points were used (marked with *). The inset shows the changes in $L_{2}$-error norms with increasing number of layers. B) Mean squared errors for the three activation functions with 4 layers and 10 layers.}
-%\label{Figure:Results_1}
-%\end{figure*}
+In our framework, multiple simulations were conducted to derive meaningful insights. The obtained results are summarized as follows:
+\subsection{CFD Simulations}
+Figure~\ref{Figure:Results_CFD} illustrates the Q-criterion, providing a visual representation of turbulent transition along the artery at various Reynolds numbers ($Re = 100-1000$). The CFD simulations aimed to assign a steady velocity to the stenotic pipe, ranging from 1.33 cm/s to 13.3 cm/s at different Reynolds numbers.
+%Figure 2
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.95\textwidth]{./Figures/Figure3_results_advection_diffusion.png}
+    \caption{Advection Diffusion Simulation Results, Contrast transition as the result of convection-diffusion simulations for $Re=1000$ in after 1, 5, 10 and 15 sec of running the simulations.}
+    \label{Figure:Results_AdvDiff}
+    \end{figure*}
+\subsection{Advection-Diffusion Simulation}
+The advection-diffusion setup was adjusted and validated against theoretical formulations. Figure~\ref{Figure:Results_AdvDiff} depicts the contrast dynamics at $Re = 1000$ at four time points ($t = 1, 5, 10, 15$ seconds), showcasing contrast perfusion along the artery. The final output illustrates the motion of contrast agents driven by the assigned velocity.
+\subsection{Contrast Dispersion Simulation}
+Results of the contrast dispersion, estimating velocity, were compared to the mean velocity assigned in the CFD simulations and summarized in Table~\ref{Table:Results_ContrastDisp}. The mean velocity error ranged from 0.1\% to 9\%, with an average of 2.5\% for different Reynolds numbers. The transit delay varied from 46\% to 65\% of the simulation run-time. An observed increase in the transit delay to simulation run-time ratio was noted with higher Reynolds numbers. The correlation coefficient for calculated velocity vs. Reynold's number.
+\begin{table}[h]
+    \centering
+    \caption{Comparison of the CFD assigned velocity and the estimated velocity using our contrast dispersion method at varying Reynolds numbers and Advection-Diffusion simulation run-times.}
+    \label{Table:VelocityComparison}
+    \begin{tabular}{ccccccccccc}
+    \hline
+    \multicolumn{1}{c}{Re} & \multicolumn{1}{c}{run-time (s)} & \multicolumn{1}{c}{$V_{CFD}$} & \multicolumn{1}{c}{$V_{est}$} & \multicolumn{1}{c}{Err (\%)} \\
+    \hline
+    100   & 85   & 1.3    & 1.20   & 9.22 \\
+    200   & 45   & 2.6    & 2.52   & 5.06 \\
+    300   & 30   & 3.9    & 3.63   & 9.05 \\
+    400   & 25   & 5.3    & 4.83   & 9.25 \\
+    500   & 18   & 6.6    & 6.50   & 2.38 \\
+    600   & 16   & 7.9    & 7.75   & 3.01 \\
+    700   & 15   & 9.3    & 9.04   & 3.05 \\
+    800   & 14   & 10.6   & 10.46  & 1.86 \\
+    900   & 13   & 11.9   & 11.88  & 0.90 \\
+    1000  & 12   & 13.3   & 13.31  & 0.12 \\
+    \hline
+    \end{tabular}
+    \end{table}
 
 %2D Non-axisymmetric Stenosis
 %\subsection{Test Case B: 2D Non-Axisymmetric Stenosis at Re=5000}
@@ -212,6 +252,15 @@ In this simulation $C_{min}$ and $C_{max}$ are the minimum and maximum of the co
 
 %%%%%%%%%%%%%%%%% DISCUSSION %%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
+
+Our findings underscore the potential of estimating lumen velocity through contrast perfusion imaging, despite inherent errors influenced by the flow regime. Notably, the estimated velocities closely align with the assigned velocities in CFD simulations across the Reynolds number spectrum, with errors predominantly below 10\%. Importantly, higher Reynolds numbers correspond to shorter simulation run-times and smaller percentage errors. In aggregate, the data suggests robust agreement between estimated and assigned velocities, indicating the efficacy of our method across diverse flow conditions.
+
+These results bear significant implications for the expanding domain of non-invasive coronary flow assessment employing CT-MPI. The observed correlation between accuracy and Reynolds number necessitates in-depth exploration and refinement of estimation methods. Investigating advanced models that incorporate periodic flow assumptions or account for Reynolds number-specific corrections holds promise in mitigating biases and enhancing the precision of velocity and flow rate estimations. Ultimately, our research has the potential to facilitate non-invasive evaluation of blood flow dynamics directly from routine scans, contributing to improved diagnoses and targeted therapeutic interventions.
+
+\subsection{Limitations and Future Work}
+
+While our study demonstrates promising results, it is essential to acknowledge certain limitations. The current method's dependence on Reynolds number prompts further investigation into refining estimation techniques for varying flow conditions. Future work may explore additional factors influencing accuracy and employ more sophisticated models to address these considerations. Additionally, clinical validation and comparisons with established methods will be crucial to establishing the broader applicability and reliability of our approach.
+
 %\subsection {Higher Performance of $sine$ Activation Function to Model Complex Cardiovascular Flows}
 %Activation functions play a key role in the training process of the neural networks and determine the overall performance and accuracy of the learned solutions. Common activation functions, such as $ReLU$, $tanh$, $swish$, and $sigmod$, have been observed and proven to suffer from substantial inefficiency on learning high-frequency functions, even with increased network complexity \citep{Tancik2020_PINNs}. The failure of standard neural networks on high-frequency functions is a well-known phenomenon, called spectral bias \citep{Rahman2019_PINNs}. These limitations of standard activation functions can be problematic in modeling complex cardiovascular flows that often contain high-frequency spatio-temporal flow fluctuations. Indeed, recent evidences from super-resolution CFD simulations and experimental measurements have shown the presence and prevalence of high-frequency spatio-temporal flow fluctuations, often termed "turbulent-like" flows \citep{Khan2021_Aneurysms,Bruneau2023_Aneurysm} . These findings raise questions regarding the applicability of PINNs, specifically with conventional activation functions, to model complex, turbulent-like cardiovascular flows. 
 
@@ -238,6 +287,7 @@ In this simulation $C_{min}$ and $C_{max}$ are the minimum and maximum of the co
 
 
 \section{Conclusions}
+In this study, we have presented a comprehensive computational framework for estimating blood velocity in stenosed coronary arteries using contrast perfusion imaging. Our results indicate strong agreement between estimated and assigned velocities across varying Reynolds numbers, underscoring the method's potential for non-invasive coronary flow assessment. The observed dependence on Reynolds number highlights the need for further refinement and investigation into estimation methods. Future work may involve exploring advanced models to mitigate biases and enhance accuracy. Ultimately, this research contributes to the potential of non-invasive assessment of blood
 %We have tested the performance of a Fourier-based activation function with specialized initialization, against conventional activation functions for cardiovascular blood flow applications. Our findings can be summarized in three key points:
 
 %\begin{itemize}
