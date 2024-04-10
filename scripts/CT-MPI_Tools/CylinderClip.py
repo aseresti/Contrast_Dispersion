@@ -48,8 +48,8 @@ class CylinderClipAlongCL():
         SphereOutput = clipper.GetOutput().GetPointData().GetArray(ArrayName)
         SphereOutput = vtk_to_numpy(SphereOutput)
         averagePixelValue = np.average(SphereOutput)
-        print(averagePixelValue)
-        return clipper.GetOutput()
+
+        return clipper.GetOutput(), averagePixelValue
 
     def AppendVolumes(self,volume1,volume2):
         append_filter = vtk.vtkAppendFilter()
@@ -71,6 +71,8 @@ class CylinderClipAlongCL():
             else:
                 ArrayName = volume.GetPointData().GetArrayName(0)
                 volume.GetPointData().GetArray(ArrayName).SetName("scalars")
+                InputVolumesDict[f"volume_"] = volume
+                self.PeakVolumeName = volume_
         
         return sorted(InputVolumesDict.items())
 
@@ -80,18 +82,25 @@ class CylinderClipAlongCL():
         print("number of point along the centerline = ", NPoints)
 
         InputVolumesDict = self.ReadInputVolumes()
-        Inflow_Temporal = np.empty([self.VolumeFileNames.__len__(),1])
+        Inflow_Contrast_Temporal = np.empty([self.VolumeFileNames.__len__(),1])
 
+        count = 0
         for volume in InputVolumesDict.items():
-            Inflow_Clip = self.SphereClip(CLFile.GetPoint(0),volume)
+            Inflow_Clip = self.SphereClip(CLFile.GetPoint(0), volume)
+            Inflow_Contrast_Temporal[count] = Inflow_Clip[1]
+            count += 1
 
-        Clip1 = self.SphereClip(CLFile.GetPoint(0))
+        CenterLine_Contrast = np.empty([NPoints, 1])
+        PeakVolume = InputVolumesDict[self.PeakVolumeName]
+        Clip1 = self.SphereClip(CLFile.GetPoint(0), PeakVolume)
+        CenterLine_Contrast[0] = Clip1[0]
         for point in range(1,NPoints-2):
-            Clip2 = self.SphereClip(CLFile.GetPoint(point))
-            Clip1 = self.AppendVolumes(Clip1, Clip2)
+            Clip2 = self.SphereClip(CLFile.GetPoint(point), PeakVolume)
+            CenterLine_Contrast[point] = Clip2[1]
+            Clip1[0] = self.AppendVolumes(Clip1[0], Clip2[0])
         
         ClipOutputFile = "ClippedVolume.vtu"
-        WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFileName}/{ClipOutputFile}", Clip1)
+        WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFileName}/{ClipOutputFile}", Clip1[0])
     
 
 if __name__ == "__main__":
