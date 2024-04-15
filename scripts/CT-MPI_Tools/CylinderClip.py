@@ -1,8 +1,15 @@
-import vtk
+
 import os
+import sys
 import argparse
+
 import numpy as np
+import vtk
+import matplotlib.pyplot as plt
+
 from utilities import ReadVTUFile, ReadVTPFile, vtk_to_numpy, WriteVTUFile
+from ContrastTools import Model1D
+
 
 class CylinderClipAlongCL():
     def __init__(self, args) -> None:
@@ -23,8 +30,7 @@ class CylinderClipAlongCL():
         os.system(f"vmtkcenterlinesmoothing -ifile {self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name} -ofile {self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name} -factor 0.1 -iterations 200")
         os.system(f"vmtkcenterlineresampling -ifile {self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name} -ofile {self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name} -length 0.05")
         
-        CLFile = ReadVTPFile(f"{self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name}")
-        return CLFile
+        self.CLFile = ReadVTPFile(f"{self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name}")
 
 
     def SphereClip(self, center, volume):
@@ -58,57 +64,104 @@ class CylinderClipAlongCL():
         append_filter.Update()
         return append_filter.GetOutput()
     
-    def ContrastDisperssion(self):
-        pass
+    def ContrastDisperssion(self, Inflow_Contrast_Temporal, CenterLine_Contrast):
+        [x, t, UpSlope] = self.CreateCoords()
+        Inflow_Upslope = Inflow_Contrast_Temporal[self.Args.delay: self.Args.peak]
+        [xslope, xpred] = Model1D(x,CenterLine_Contrast)
+        [tslope, tpred] = Model1D(UpSlope, Inflow_Upslope)
+        VelocityPredicted = tslope/xslope
+
+        #Plotting Curves
+        plt.figure(figsize=(13,5))
+
+        plt.subplot(121)
+        plt.scatter(t.reshape(-1,1), Inflow_Contrast_Temporal.reshape(-1,1), label = "Inflow Center")
+        plt.plot(UpSlope.reshape(-1,1), tpred.reshape(-1,1), color = 'red', label = 'Linear (Inflow Cenetr)')
+        plt.title("Temporal Attenuation Curve")
+        plt.xlabel("time (s)")
+
+        plt.subplot(122)
+        plt.scatter(x.reshape(-1,1), CenterLine_Contrast.reshape(-1,1), label = "Lumen Centerline")
+        plt.plot(x.reshape(-1,1), xpred.reshape(-1,1), color = 'red', label='Linear (Linear Center)')
+        plt.title("Spatial Attenuation Curve")
+        plt.xlabel("length (mm)")
+        
+        plt.show()
+
+        print("the predicted velocity is: ", VelocityPredicted, " mm/s")
+
+
+    def CreateCoords(self):
+        
+        NPoints = self.CLFile.GetNumberOfPoints()
+        CL_Coord = np.empty([NPoints,1])
+        CL_Coord[0] = 0
+        for n in range(1,NPoints):
+            point0 = self.CLFile.GetPoint(n-1)
+            point = self.CLFile.GetPoint(n)
+            CL_Coord[n] = (
+                (point[0]-point0[0])**2 +
+                (point[1]-point0[1])**2 +
+                (point[2]-point0[2])**2)**0.5
+
+        TimePoints = self.VolumeFileNames.__len__()
+        Time_Coord = np.array([i*self.Args.TemporalInterval for i in range(TimePoints)])
+        UpSlope = Time_Coord[self.Args.delay:self.Args.peak]
+
+        return CL_Coord, Time_Coord, UpSlope
 
     def ReadInputVolumes(self):
         InputVolumesDict = dict()
 
         for volume_ in self.VolumeFileNames:
             volume = ReadVTUFile(f"{self.Args.InputFolderName}/{volume_}")
-            if volume.GetOutput().GetPointData().GetArray("scalars"):
-                InputVolumesDict[f"volume_"] = volume
+            if volume.GetPointData().GetArray("scalars"):
+                InputVolumesDict[f"{volume_}"] = volume
             else:
                 ArrayName = volume.GetPointData().GetArrayName(0)
                 volume.GetPointData().GetArray(ArrayName).SetName("scalars")
-                InputVolumesDict[f"volume_"] = volume
-                self.PeakVolumeName = volume_
+                InputVolumesDict[f"{volume_}"] = volume
         
         return sorted(InputVolumesDict.items())
 
     def main(self):
-        CLFile = self.ExtractCeneterLine()
-        NPoints = CLFile.GetNumberOfPoints()
+        self.ExtractCeneterLine()
+        NPoints = self.CLFile.GetNumberOfPoints()
         print("number of point along the centerline = ", NPoints)
 
         InputVolumesDict = self.ReadInputVolumes()
         Inflow_Contrast_Temporal = np.empty([self.VolumeFileNames.__len__(),1])
 
         count = 0
-        for volume in InputVolumesDict.items():
-            Inflow_Clip = self.SphereClip(CLFile.GetPoint(0), volume)
+        for volume in InputVolumesDict:
+            print(f"--- Reading the Inflow center of {volume[0]}")
+            Inflow_Clip = self.SphereClip(self.CLFile.GetPoint(0), volume[1])
             Inflow_Contrast_Temporal[count] = Inflow_Clip[1]
             count += 1
 
         CenterLine_Contrast = np.empty([NPoints, 1])
-        PeakVolume = InputVolumesDict[self.PeakVolumeName]
-        Clip1 = self.SphereClip(CLFile.GetPoint(0), PeakVolume)
-        CenterLine_Contrast[0] = Clip1[0]
-        for point in range(1,NPoints-2):
-            Clip2 = self.SphereClip(CLFile.GetPoint(point), PeakVolume)
-            CenterLine_Contrast[point] = Clip2[1]
-            Clip1[0] = self.AppendVolumes(Clip1[0], Clip2[0])
+        print(f"--- Reading the centerline of peak volume: {InputVolumesDict[self.Args.peak][0]}")
+        PeakVolume = InputVolumesDict[self.Args.peak][1]
+        [Clip1, CenterLine_Contrast[0]] = self.SphereClip(self.CLFile.GetPoint(0), PeakVolume)
+        for point in range(1,NPoints):
+            [Clip2, CenterLine_Contrast[point]] = self.SphereClip(self.CLFile.GetPoint(point), PeakVolume)
+            Clip1 = self.AppendVolumes(Clip1, Clip2)
         
         ClipOutputFile = "ClippedVolume.vtu"
-        WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFileName}/{ClipOutputFile}", Clip1[0])
-    
+        WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFileName}/{ClipOutputFile}", Clip1)
+        
+        self.ContrastDisperssion(Inflow_Contrast_Temporal, CenterLine_Contrast)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-InputFolderName", "--InputFolderName", type=str, required=True, dest="InputFolderName")
+    parser.add_argument("-TemporalInterval", "--TemporalInterval", type=float, required=True, dest="TemporalInterval")
+    parser.add_argument("-delay", "--delay", type=int, required=True, dest="delay", help="bolus time delay before upslope rises")
+    parser.add_argument("-peak", "--peak", type=int, required=True, dest="peak", help="the number of image on witch the upslope reaches its peak")
+
     args = parser.parse_args()
 
-    CylinderClipAlongCL(args).ReadInputVolumes()
-    #CylinderClipAlongCL(args).main()
+    #CylinderClipAlongCL(args).ReadInputVolumes()
+    CylinderClipAlongCL(args).main()
 
 
