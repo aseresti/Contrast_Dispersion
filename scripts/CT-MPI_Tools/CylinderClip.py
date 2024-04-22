@@ -1,14 +1,14 @@
 
 import os
-import sys
 import argparse
 
 import numpy as np
 import vtk
 import matplotlib.pyplot as plt
+#from itertools import zip_longest
 
-from utilities import ReadVTUFile, ReadVTPFile, vtk_to_numpy, WriteVTUFile
-from ContrastTools import Model1D
+from utilities import ReadVTUFile, ReadVTPFile, WriteVTUFile, GetCentroid, vtk_to_numpy, ThresholdInBetween
+from ContrastTools import Model1D, MAFilter
 
 
 class CylinderClipAlongCL():
@@ -19,25 +19,75 @@ class CylinderClipAlongCL():
         Volumefilenames = [filename for filename in filenames if "vtu" in filename]
         self.VolumeFileNames = sorted(Volumefilenames)
 
-        SurfaceFileName = [filename for filename in filenames if "vtp" in filename]
+        SurfaceFileName = [filename for filename in filenames if "surface" in filename]
         self.SurfaceFileName = SurfaceFileName[0]
-        self.OutputFileName = "ClippingOutput"
-        os.system(f"mkdir {self.Args.InputFolderName}/{self.OutputFileName}")
+
+        slicenames = [filename for filename in filenames if "slice" in filename]
+        self.SliceNames = sorted(slicenames)
+
+        self.OutputFolderName = "ClippingOutput"
+        if self.OutputFolderName not in filenames:
+            print(f"*** Making A New Directory: {self.OutputFolderName}")
+            os.system(f"mkdir {self.Args.InputFolderName}/{self.OutputFolderName}")
+        else:
+            print(f"*** {self.OutputFolderName} Already Exists!")
+
+        self.MAFilter_Length = 15
 
     def ExtractCeneterLine(self):
         CL_File_Name = "aorta_cl.vtp"
-        os.system(f"vmtkcenterlines -ifile {self.Args.InputFolderName}/{self.SurfaceFileName} -ofile {self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name} -endpoints 1 -resampling 1 -resamplingstep 15")
-        os.system(f"vmtkcenterlinesmoothing -ifile {self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name} -ofile {self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name} -factor 0.1 -iterations 200")
-        os.system(f"vmtkcenterlineresampling -ifile {self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name} -ofile {self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name} -length 0.05")
+        os.system(f"vmtkcenterlines -ifile {self.Args.InputFolderName}/{self.SurfaceFileName} -ofile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -endpoints 1 -resampling 1 -resamplingstep 4")
+        os.system(f"vmtkcenterlinesmoothing -ifile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -ofile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -factor 0.1 -iterations 200")
+        os.system(f"vmtkcenterlineresampling -ifile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -ofile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -length 0.5")
         
-        self.CLFile = ReadVTPFile(f"{self.Args.InputFolderName}/{self.OutputFileName}/{CL_File_Name}")
+        self.CLFile = ReadVTPFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name}")
+
+    def ExtractPieceWiseCeneterLine(self):
+        center = []
+        count = 0
+        for SliceName in self.SliceNames:
+            slice = ReadVTPFile(f"{self.Args.InputFolderName}/{SliceName}")
+            print(GetCentroid(slice))
+            center.append(GetCentroid(slice))
+            count += 1
+
+        CLPoints = []
+        for i in range(1,count-1):
+            x0 = center[i-1][0]; y0 = center[i-1][1]; z0 = center[i-1][2]
+            x1 = center[i][0]; y1 = center[i][1]; z1 = center[i][2]
+            for X in np.arange(x0,x1,0.5):
+                Y = (y1-y0)/(x1-x0)*(X-x0) + y0
+                Z = (z1-z0)/(x1-x0)*(X-x0) + z0
+                CLPoints.append([X,Y,Z])
+        
+        return CLPoints
+    
+    def CenterLineMeshSection(self,volume):
+        CL_File_Name = "aorta_cl.vtp"
+        MS_File_Name = "aorta_mesh_section.vtp"
+        os.system(f"vmtkcenterlinemeshsections -centerlinesfile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -ifile {self.Args.InputFolderName}/{self.OutputFolderName}/{volume} -ofile {self.Args.InputFolderName}/{self.OutputFolderName}/{MS_File_Name}")
+        
+        SurfaceSections = ReadVTPFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{MS_File_Name}")
+        Nstart,Nend=SurfaceSections.GetPointData().GetArray("SectionIds").GetRange()
+        Nstart=int(Nstart)
+        Nend=int(Nend)
+        Contrast_Along_CL = np.empty([Nend-Nstart,1])
+        
+        for i in range(Nstart,Nend):
+			#Get the Section of the Slice
+            section_ = ThresholdInBetween(SurfaceSections,"SectionIds",i,i)
+            ContrastArray = vtk_to_numpy(section_.GetPointData().GetArray("scalars"))
+            Contrast_Along_CL[i] = np.average(ContrastArray)
+        
+        return Contrast_Along_CL
+    
 
 
     def SphereClip(self, center, volume):
         #define the Sphere
         Sphere = vtk.vtkSphere()
         Sphere.SetCenter(center)
-        Sphere.SetRadius(2)
+        Sphere.SetRadius(5)
 
         #Implement vtkclipping filter "sphere"
         clipper = vtk.vtkClipDataSet()
@@ -67,9 +117,11 @@ class CylinderClipAlongCL():
     def ContrastDisperssion(self, Inflow_Contrast_Temporal, CenterLine_Contrast):
         [x, t, UpSlope] = self.CreateCoords()
         Inflow_Upslope = Inflow_Contrast_Temporal[self.Args.delay: self.Args.peak]
+        x = x[:-150]; CenterLine_Contrast = CenterLine_Contrast[:-150]
         [xslope, xpred] = Model1D(x,CenterLine_Contrast)
         [tslope, tpred] = Model1D(UpSlope, Inflow_Upslope)
         VelocityPredicted = tslope/xslope
+        print("the predicted velocity is: ", abs(VelocityPredicted), " mm/s")
 
         #Plotting Curves
         plt.figure(figsize=(13,5))
@@ -88,22 +140,40 @@ class CylinderClipAlongCL():
         
         plt.show()
 
-        print("the predicted velocity is: ", VelocityPredicted, " mm/s")
+        TextFileName = "Output.txt"
+        TextFile_data = [
+            ["x_array (mm)"] + list(item[0] for item in x),
+            ["Contrast_Along_CL (HU)"] + list(CenterLine_Contrast),
+            ["t_array_UpSlope (s)"] + list(UpSlope),
+            ["Inflow Contrast (HU)"] + list(item[0] for item in Inflow_Upslope)
+        ]
+
+        # Write the transposed data to the output file
+        with open(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{TextFileName}", "w") as writefile:
+            for row in TextFile_data:
+                writefile.write(", ".join(str(item) for item in row) + "\n")
 
 
     def CreateCoords(self):
         
         NPoints = self.CLFile.GetNumberOfPoints()
-        CL_Coord = np.empty([NPoints,1])
+        point0 = self.CLFile.GetPoint(0)
+        point = self.CLFile.GetPoint(NPoints-1)
+        Length = (
+                (point[0]-point0[0])**2 +
+                (point[1]-point0[1])**2 +
+                (point[2]-point0[2])**2)**0.5
+        print(f"***** The length of the centerline is: {Length} mm")
+        CL_Coord = np.empty([NPoints - self.MAFilter_Length,1])
         CL_Coord[0] = 0
-        for n in range(1,NPoints):
-            point0 = self.CLFile.GetPoint(n-1)
+        for n in range(1,NPoints - self.MAFilter_Length):
+            #point0 = self.CLFile.GetPoint(n-1)
             point = self.CLFile.GetPoint(n)
             CL_Coord[n] = (
                 (point[0]-point0[0])**2 +
                 (point[1]-point0[1])**2 +
                 (point[2]-point0[2])**2)**0.5
-
+            
         TimePoints = self.VolumeFileNames.__len__()
         Time_Coord = np.array([i*self.Args.TemporalInterval for i in range(TimePoints)])
         UpSlope = Time_Coord[self.Args.delay:self.Args.peak]
@@ -148,9 +218,11 @@ class CylinderClipAlongCL():
             Clip1 = self.AppendVolumes(Clip1, Clip2)
         
         ClipOutputFile = "ClippedVolume.vtu"
-        WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFileName}/{ClipOutputFile}", Clip1)
+        WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{ClipOutputFile}", Clip1)
+
+        CenterLine_Contrast_ = self.CenterLineMeshSection(ClipOutputFile)
         
-        self.ContrastDisperssion(Inflow_Contrast_Temporal, CenterLine_Contrast)
+        self.ContrastDisperssion(Inflow_Contrast_Temporal, MAFilter(CenterLine_Contrast, self.MAFilter_Length))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -161,6 +233,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    #CylinderClipAlongCL(args).ExtractPieceWiseCeneterLine()
     #CylinderClipAlongCL(args).ReadInputVolumes()
     CylinderClipAlongCL(args).main()
 
