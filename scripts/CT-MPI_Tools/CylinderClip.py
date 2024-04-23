@@ -32,7 +32,7 @@ class CylinderClipAlongCL():
         else:
             print(f"*** {self.OutputFolderName} Already Exists!")
 
-        self.MAFilter_Length = 15
+        self.MAFilter_Length = 0
 
     def ExtractCeneterLine(self):
         CL_File_Name = "aorta_cl.vtp"
@@ -114,10 +114,12 @@ class CylinderClipAlongCL():
         append_filter.Update()
         return append_filter.GetOutput()
     
-    def ContrastDisperssion(self, Inflow_Contrast_Temporal, CenterLine_Contrast):
+    def ContrastDisperssion(self, Inflow_Contrast_Temporal, CenterLineContrastDict):
         [x, t, UpSlope] = self.CreateCoords()
         Inflow_Upslope = Inflow_Contrast_Temporal[self.Args.delay: self.Args.peak]
-        x = x[:-150]; CenterLine_Contrast = CenterLine_Contrast[:-150]
+
+        CenterLine_Contrast = CenterLineContrastDict[self.VolumeFileNames[self.Args.peak]]
+        #x = x[:-150]; CenterLine_Contrast = CenterLine_Contrast[:-150]
         [xslope, xpred] = Model1D(x,CenterLine_Contrast)
         [tslope, tpred] = Model1D(UpSlope, Inflow_Upslope)
         VelocityPredicted = tslope/xslope
@@ -152,6 +154,40 @@ class CylinderClipAlongCL():
         with open(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{TextFileName}", "w") as writefile:
             for row in TextFile_data:
                 writefile.write(", ".join(str(item) for item in row) + "\n")
+
+        new_t, New_CenterLineContrastDict = self.UpslopeInterpolation(CenterLineContrastDict,t)
+        dict_item = list(New_CenterLineContrastDict.items())
+        CenterLine_Contrast0 = dict_item[2 * self.Args.peak - 2][1]
+        CenterLine_Contrast1 = dict_item[2 * self.Args.peak - 1][1]
+        CenterLine_Contrast2 = np.concatenate((CenterLine_Contrast0[:150], CenterLine_Contrast1[150:]))
+        plt.figure(figsize=(10,5))
+        plt.plot(x.reshape(-1,1), CenterLine_Contrast2.reshape(-1,1),color = 'red', label = 'interpolated')
+        plt.plot(x.reshape(-1,1), CenterLine_Contrast1.reshape(-1,1),color= 'green', label = 'peak')
+        plt.show()
+    
+
+
+    def UpslopeInterpolation(self,CenterLineContrastDict, t):
+        NPoints = self.CLFile.GetNumberOfPoints()
+        doubled_length = len(t)*2 #interpolate the centerline in time domain to double it because of the shuttle mode
+        new_t = np.linspace(t[0], t[-1], doubled_length)
+
+        New_CenterLineContrastDict = {f'interp_{i}': np.empty([NPoints,1]) for i in range(0,doubled_length)}
+
+        for point in range(NPoints):
+            Points = np.empty([len(t)])
+            count = 0
+            for CenterLineContrast in CenterLineContrastDict.values():
+                Points[count] = CenterLineContrast[point]
+                count +=1
+
+            interpolateSignal = np.interp(new_t, range(len(t)), Points)
+            i = 0
+            for key, value in New_CenterLineContrastDict.items():
+                value[point] = interpolateSignal[i]
+                i +=1
+
+        return new_t, New_CenterLineContrastDict
 
 
     def CreateCoords(self):
@@ -209,20 +245,31 @@ class CylinderClipAlongCL():
             Inflow_Contrast_Temporal[count] = Inflow_Clip[1]
             count += 1
 
-        CenterLine_Contrast = np.empty([NPoints, 1])
-        print(f"--- Reading the centerline of peak volume: {InputVolumesDict[self.Args.peak][0]}")
-        PeakVolume = InputVolumesDict[self.Args.peak][1]
-        [Clip1, CenterLine_Contrast[0]] = self.SphereClip(self.CLFile.GetPoint(0), PeakVolume)
-        for point in range(1,NPoints):
-            [Clip2, CenterLine_Contrast[point]] = self.SphereClip(self.CLFile.GetPoint(point), PeakVolume)
-            Clip1 = self.AppendVolumes(Clip1, Clip2)
+        # Read the centerline of the every files in the upslope
+        CenterLineContrastDict = {volume[0]: None for volume in InputVolumesDict[self.Args.delay:self.Args.peak+1]}
+
+        count = 1
+        for volume in InputVolumesDict:
+            print(f"--- Reading the centerline of the volume: {volume[0]}")
+            Clip1 = None #Clear Clip1 before reassignment
+            CenterLineContrast = np.empty([NPoints,1])
+            [Clip1, CenterLineContrast[0]] = self.SphereClip(self.CLFile.GetPoint(0), volume[1])
+            for point in range(1,NPoints):
+                [Clip2, CenterLineContrast[point]] = self.SphereClip(self.CLFile.GetPoint(point), volume[1])
+                Clip1 = self.AppendVolumes(Clip1, Clip2)
+            
+            count+=1
+            if count == self.Args.peak:
+                PeakCylinderClip = Clip1
+            
+            CenterLineContrastDict[volume[0]] = CenterLineContrast
         
         ClipOutputFile = "ClippedVolume.vtu"
-        WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{ClipOutputFile}", Clip1)
+        WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{ClipOutputFile}", PeakCylinderClip)
 
-        CenterLine_Contrast_ = self.CenterLineMeshSection(ClipOutputFile)
+        #CenterLine_Contrast_ = self.CenterLineMeshSection(ClipOutputFile)
         
-        self.ContrastDisperssion(Inflow_Contrast_Temporal, MAFilter(CenterLine_Contrast, self.MAFilter_Length))
+        self.ContrastDisperssion(Inflow_Contrast_Temporal, CenterLineContrastDict)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
