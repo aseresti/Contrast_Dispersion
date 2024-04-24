@@ -32,13 +32,15 @@ class CylinderClipAlongCL():
         else:
             print(f"*** {self.OutputFolderName} Already Exists!")
 
+        self.TemporalInterval = 60 / self.Args.HeartBeat
+        
         # Adjustable Parameters
         self.MAFilter_Length = 0
-        self.radius = 5 # the radius of the sphere clip
+        self.radius = 7 # the radius of the sphere clip
         self.CL_Point_Length = 4 # the distance between the two CL points
         self.interpolation_factor = 4 
         self.interpolation_peak = self.interpolation_factor * self.Args.peak - 2 # the index of the peak point of the time attenuation curve after interpolation
-        self.interpolation_pre_peak = self.interpolation_peak - int(self.Args.TemporalInterval/2) # the index of the pre peak point of the time attenuation curve after interpolation
+        self.interpolation_pre_peak = self.interpolation_peak - int(self.interpolation_factor/2) # the index of the pre peak point of the time attenuation curve after interpolation
 
     def ExtractCeneterLine(self):
         CL_File_Name = "aorta_cl.vtp"
@@ -239,7 +241,7 @@ class CylinderClipAlongCL():
                 (point[2]-point0[2])**2)**0.5
             
         TimePoints = self.VolumeFileNames.__len__()
-        Time_Coord = np.array([i*self.Args.TemporalInterval for i in range(TimePoints)])
+        Time_Coord = np.array([i*self.TemporalInterval for i in range(TimePoints)])
         UpSlope = Time_Coord[self.Args.delay:self.Args.peak]
 
         return CL_Coord, Time_Coord, UpSlope
@@ -303,7 +305,7 @@ class CylinderClipAlongCL():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-InputFolderName", "--InputFolderName", type=str, required=True, dest="InputFolderName")
-    parser.add_argument("-TemporalInterval", "--TemporalInterval", type=float, required=True, dest="TemporalInterval")
+    parser.add_argument("-HeartBeat", "--HeartBeat", type=float, required=True, dest="HeartBeat")
     parser.add_argument("-delay", "--delay", type=int, required=True, dest="delay", help="bolus time delay before upslope rises")
     parser.add_argument("-peak", "--peak", type=int, required=True, dest="peak", help="the number of image on witch the upslope reaches its peak")
 
