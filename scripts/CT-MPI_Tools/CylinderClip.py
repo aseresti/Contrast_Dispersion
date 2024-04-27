@@ -142,13 +142,13 @@ class ContrastDispersionAlongVessel():
     
     def ContrastDisperssion(self, Inflow_Contrast_Temporal, CenterLineContrastDict):
         [x, t, UpSlope] = self.CreateCoords()
-        Inflow_Upslope = Inflow_Contrast_Temporal[self.Args.delay: self.Args.peak] # the images that are taken during the upslope time
+        Inflow_Upslope: np.array[float] = Inflow_Contrast_Temporal[self.Args.delay: self.Args.peak] # the images that are taken during the upslope time
 
         # find the velocity before interpolation (just in case, if the vessel doesn't have a jump in pixel values need interpolation)
-        CenterLine_Contrast = CenterLineContrastDict[self.VolumeFileNames[self.Args.peak]] # taking the centerline extracted from the image at the peak of the upslope
+        CenterLine_Contrast: np.array = CenterLineContrastDict[self.VolumeFileNames[self.Args.peak]] # taking the centerline extracted from the image at the peak of the upslope
         [xslope, xpred] = Model1D(x,CenterLine_Contrast) # calculating dC/dx
         [tslope, tpred] = Model1D(UpSlope, Inflow_Upslope) # calculating dC/dt
-        VelocityPredicted = tslope/xslope # calculate the velocity of Contrast Dispersion
+        VelocityPredicted: float = tslope/xslope # calculate the velocity of Contrast Dispersion
         print("the predicted velocity is: ", abs(VelocityPredicted), " mm/s")
 
         #Plotting Curves C(x) and C(t)
@@ -172,6 +172,7 @@ class ContrastDispersionAlongVessel():
         
         plt.show()
 
+        # to-do: add after interpolation spatial data
         # Write the text output file to store the contrast in time and along the centerline
         TextFileName = "Output.txt"
         TextFile_data = [
@@ -187,14 +188,14 @@ class ContrastDispersionAlongVessel():
                 writefile.write(", ".join(str(item) for item in row) + "\n")
 
         # extracting the centerline after the interpolation; half of the points are extracted from the peak and the other half from the pre-peak and being concatenated
-        interp_CenterLineContrastDict = self.TemporalInterpolation(CenterLineContrastDict,t)
+        interp_CenterLineContrastDict: Dict[np.array] = self.TemporalInterpolation(CenterLineContrastDict,t)
         dict_item_interp = list(interp_CenterLineContrastDict.items())
-        CenterLine_Contrast0 = dict_item_interp[self.interpolation_pre_peak][1]
-        CenterLine_Contrast1 = dict_item_interp[self.interpolation_peak][1]
+        CenterLine_Contrast0: np.array = dict_item_interp[self.interpolation_pre_peak][1]
+        CenterLine_Contrast1: np.array = dict_item_interp[self.interpolation_peak][1]
         CenterLine_Contrast2 = np.concatenate((CenterLine_Contrast1[:int(self.NPoints/2)], CenterLine_Contrast0[int(self.NPoints/2):]))
         
         [xslope, xpred] = Model1D(x,CenterLine_Contrast2) # calculating dC/dx from the concatenated centerline points
-        VelocityPredicted = tslope/xslope # calculating the velocity after interpolation
+        VelocityPredicted: float = tslope/xslope # calculating the velocity after interpolation
 
         # plot the peak and pre-peak centerlines and the concatenated centerline
         plt.figure(figsize=(10,5))
@@ -211,12 +212,12 @@ class ContrastDispersionAlongVessel():
 
 
     def TemporalInterpolation(self,CenterLineContrastDict, t):
-        dict_item = sorted(CenterLineContrastDict.items())
+        dict_item: list = sorted(CenterLineContrastDict.items())
 
-        new_length = len(t) * self.interpolation_factor #interpolate the centerline in time domain because of the dynamic shuttle mode
-        new_t = np.linspace(t[0], t[-1], new_length)
+        new_length: int = len(t) * self.interpolation_factor # signal length after interpolation
+        new_t: np.array = np.linspace(t[0], t[-1], new_length) # interpolation coordinate
 
-        New_CenterLineContrastDict = {f'interp_{i}': np.empty([self.NPoints,1]) for i in range(0,new_length)}
+        New_CenterLineContrastDict: Dict[np.array] = {f'interp_{i}': np.empty([self.NPoints,1]) for i in range(0,new_length)} #interpolated data
 
         for point in range(self.NPoints):
             Points = np.empty([len(t)])
@@ -232,6 +233,7 @@ class ContrastDispersionAlongVessel():
             for i, (key, value) in enumerate(New_CenterLineContrastDict.items()):
                 value[point] = interpolateSignal[i]
         
+        # plotting the time attenuation curve of the initial signal and the interpolated signal; specifying the peak and pre-peak time-points; The plot is based on the last point on the centerline
         plt.figure(figsize=(13,7))
         plt.scatter(t.reshape(-1,1), Points.reshape(-1,1), marker='o', label='Before Interpolation')
         plt.scatter(new_t.reshape(-1,1), interpolateSignal.reshape(-1,1), marker='*', label= 'After Interpolation')
@@ -254,7 +256,7 @@ class ContrastDispersionAlongVessel():
                 (point[1]-point0[1])**2 +
                 (point[2]-point0[2])**2)**0.5
         print(f"***** The length of the centerline is: {Length} mm")
-        CL_Coord = np.empty([self.NPoints - self.MAFilter_Length,1])
+        CL_Coord: np.array = np.empty([self.NPoints - self.MAFilter_Length,1])
         CL_Coord[0] = 0
         for n in range(1,self.NPoints - self.MAFilter_Length):
             #point0 = self.CLFile.GetPoint(n-1)
@@ -265,11 +267,11 @@ class ContrastDispersionAlongVessel():
                 (point[2]-point0[2])**2)**0.5
         
         # Create the time coordinate based on the heartbeat; each images in CT-MPI are by 4 heartbeats apart
-        TimePoints = self.VolumeFileNames.__len__()
-        Time_Coord = np.array([i*self.TemporalInterval for i in range(TimePoints)])
+        TimePoints: int = self.VolumeFileNames.__len__()
+        Time_Coord: np.array = np.array([i*self.TemporalInterval for i in range(TimePoints)])
 
         # seperating the upslope part of the coordinate
-        UpSlope = Time_Coord[self.Args.delay:self.Args.peak]
+        UpSlope: np.array = Time_Coord[self.Args.delay:self.Args.peak]
 
         return CL_Coord, Time_Coord, UpSlope
 
@@ -295,8 +297,8 @@ class ContrastDispersionAlongVessel():
 
         print("-"*10, "***" "-"*10)
         print("--- Extracting the temporal attenuation curve at the inflow of the vessel")
-        InputVolumesDict = self.ReadInputVolumes()
-        Inflow_Contrast_Temporal = np.empty([self.VolumeFileNames.__len__(),1])
+        InputVolumesDict: Dict[vtk.vtkUnstructuredGrid] = self.ReadInputVolumes()
+        Inflow_Contrast_Temporal: np.array[float] = np.empty([self.VolumeFileNames.__len__(),1])
 
         count = 0
         for volume in InputVolumesDict:
@@ -306,16 +308,16 @@ class ContrastDispersionAlongVessel():
             count += 1
         
         print(f"--- Storing the inflow clipper in a vtu file at {self.Args.InputFolderName}/{self.OutputFolderName}/{InflowClipFileName}")
-        InflowClipFileName = 'InflowClip.vtu'
+        InflowClipFileName: str = 'InflowClip.vtu'
         WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{InflowClipFileName}", Inflow_Clip[0])
         
         # Reading and Storing the centerline of the every files in the upslope
-        CenterLineContrastDict = {volume[0]: None for volume in InputVolumesDict[self.Args.delay:self.Args.peak+1]}
+        CenterLineContrastDict: Dict[np.array] = {volume[0]: None for volume in InputVolumesDict[:]}
         print("--- Extracting the average contrast along the centerline of the vessel")
         count = 1
         for volume in InputVolumesDict:
             print(f"--- Reading the centerline of the volume: {volume[0]}")
-            Clip1 = None #Clear Clip1 before reassignment
+            Clip1: vtk.vtkUnstructuredGrid = None # Clear Clip1 before reassignment
             CenterLineContrast = np.empty([self.NPoints,1])
             [Clip1, CenterLineContrast[0]] = self.SphereClip(self.CLFile.GetPoint(0), volume[1])
             for point in range(1,self.NPoints):
@@ -333,7 +335,6 @@ class ContrastDispersionAlongVessel():
         print(f"--- Storing the centerline clipper at peak in a vtu file at {self.Args.InputFolderName}/{self.OutputFolderName}/{ClipOutputFile}")
         WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{ClipOutputFile}", PeakCylinderClip)
 
-        #CenterLine_Contrast_ = self.CenterLineMeshSection(ClipOutputFile)
         print("-"*10, "***" "-"*10)
         print("--- Implementing the contrast dispersion and the predicted velocity")
         self.ContrastDisperssion(Inflow_Contrast_Temporal, CenterLineContrastDict)
@@ -347,8 +348,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    #CylinderClipAlongCL(args).ExtractPieceWiseCeneterLine()
-    #CylinderClipAlongCL(args).ReadInputVolumes()
     ContrastDispersionAlongVessel(args).main()
 
 
