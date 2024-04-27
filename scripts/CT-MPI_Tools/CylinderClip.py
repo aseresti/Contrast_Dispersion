@@ -1,4 +1,16 @@
+""" This script implements the Contrast Dispersion in Descending Aorta which is segmented out of the CT-MPI imges of the patient.
+The script takes a folder containing the volume files on which the pixel values are projected, and the surface file of the aorta.
+It extraxts the centerline along the aorta and takes the average pixel value inside a sphere clip moving along the centerline. 
+It interpolates each point (along the centerline) in time to enable us to compensate for the shuttle mode.
+It uses the average value of the first clip along the time to calculate dC/dt and the average pixel value along the centerline
+(one half taken from the peak, and the other half taken from the pre-peak) to calculate dC/dx.
+The user needs to specify the patient's heartbeat, the delay (or the timestep on which the upslope begins) and the peak 
+(or the time step on which the upslope reaches the peak)
+For future uses the script might need some modifications.
 
+Author: ana @ github.com/aserest
+Date: April 2024
+"""
 import os
 import argparse
 
