@@ -1,14 +1,13 @@
-""" This script implements the Contrast Dispersion in Descending Aorta which is segmented out of the CT-MPI imges of the patient.
-The script takes a folder containing the volume files on which the pixel values are projected, and the surface file of the aorta.
-It extraxts the centerline along the aorta and takes the average pixel value inside a sphere clip moving along the centerline. 
-It interpolates each point (along the centerline) in time to enable us to compensate for the shuttle mode.
-It uses the average value of the first clip along the time to calculate dC/dt and the average pixel value along the centerline
-(one half taken from the peak, and the other half taken from the pre-peak) to calculate dC/dx.
-The user needs to specify the patient's heartbeat, the delay (or the timestep on which the upslope begins) and the peak 
-(or the time step on which the upslope reaches the peak)
-For future uses the script might need some modifications.
+""" This script implements the Contrast Dispersion in the Descending Aorta, which is segmented out of the CT-MPI images of the patient. 
+The script takes a folder containing the volume files onto which the pixel values are projected, and the surface file of the aorta. 
+It extracts the centerline along the aorta and calculates the average pixel value inside a sphere clip that moves along the centerline. 
+It interpolates points along the centerline in time to compensate for the dynamic shuttle mode in 64-row CT scanners. 
+It calculates dC/dt using the average value of the first clip over time and dC/dx using the average pixel value along the centerline 
+(one half taken from the peak, and the other half taken from the pre-peak). The user needs to specify the patient's heartbeats, 
+the delay (or the timestep at which the upslope begins), and the peak (or the timestep at which the upslope reaches the peak). 
+For future use, the script might require improvements.
 
-Author: ana @ github.com/aserest
+Author: ana @ github.com/aseresti
 Date: April 2024
 """
 import os
