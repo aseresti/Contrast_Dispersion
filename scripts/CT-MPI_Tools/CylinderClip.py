@@ -16,51 +16,57 @@ import argparse
 import numpy as np
 import vtk
 import matplotlib.pyplot as plt
+from typing import List, Dict
 #from itertools import zip_longest
 
 from utilities import ReadVTUFile, ReadVTPFile, WriteVTUFile, GetCentroid, vtk_to_numpy, ThresholdInBetween
 from ContrastTools import Model1D, MAFilter
 
 
-class CylinderClipAlongCL():
-    def __init__(self, args) -> None:
+class ContrastDispersionAlongVessel():
+    def __init__(self, args: argparse) -> None:
         self.Args = args
         
-        filenames = os.listdir(self.Args.InputFolderName)
-        Volumefilenames = [filename for filename in filenames if "vtu" in filename]
-        self.VolumeFileNames = sorted(Volumefilenames)
+        # takes the input folder name to read the Input Volumes, Input Surface
+        filenames: str = os.listdir(self.Args.InputFolderName)
+        Volumefilenames: List[str] = [filename for filename in filenames if "vtu" in filename]
+        self.VolumeFileNames: List[str] = sorted(Volumefilenames)
 
-        SurfaceFileName = [filename for filename in filenames if "surface" in filename]
-        self.SurfaceFileName = SurfaceFileName[0]
+        SurfaceFileName: List[str] = [filename for filename in filenames if "surface" in filename]
+        self.SurfaceFileName: str = SurfaceFileName[0]
 
-        slicenames = [filename for filename in filenames if "slice" in filename]
-        self.SliceNames = sorted(slicenames)
+        slicenames: List[str] = [filename for filename in filenames if "slice" in filename]
+        self.SliceNames: List[str] = sorted(slicenames)
 
-        self.OutputFolderName = "ClippingOutput"
+        # creating the output folder to store the script output files
+        self.OutputFolderName: str = "ClippingOutput"
         if self.OutputFolderName not in filenames:
             print(f"*** Making A New Directory: {self.OutputFolderName}")
             os.system(f"mkdir {self.Args.InputFolderName}/{self.OutputFolderName}")
         else:
             print(f"*** {self.OutputFolderName} Already Exists!")
 
-        self.TemporalInterval = 60 / self.Args.HeartBeat
+        self.TemporalInterval = 60 / self.Args.HeartBeat # the temporal interval between each timestep
         
-        # Adjustable Parameters
-        self.MAFilter_Length = 0
-        self.radius = 7 # the radius of the sphere clip
-        self.CL_Point_Length = 4 # the distance between the two CL points
-        self.interpolation_factor = 4 
+        # Adjustable Parameters (depending on the case, the user might need to change these parameters)
+        self.MAFilter_Length = 0 # should you prefer to smooth the data along the centerline, you can use the MAFilter or Moving average filter
+        self.radius = 5 # the radius of the sphere clip 
+        # to-do: set the radius of the sphere clip as a percentage of the redius of the descending aorta
+        self.CL_Point_Length = 4 # the distance between the two CL points in mm (Try to avoid overlapping sphere clips)
+        self.interpolation_factor = 4  # To compensate the dynamic shuttle mode in CT scanners, at least you need to interpolate it with a factor of 2. 4 is recommended.
         self.interpolation_peak = self.interpolation_factor * self.Args.peak - 2 # the index of the peak point of the time attenuation curve after interpolation
         self.interpolation_pre_peak = self.interpolation_peak - int(self.interpolation_factor/2) # the index of the pre peak point of the time attenuation curve after interpolation
 
     def ExtractCeneterLine(self):
         CL_File_Name = "aorta_cl.vtp"
+        # to first extract the centerline, then smooth it and finally resample it using the provided length between each CL point
         os.system(f"vmtkcenterlines -ifile {self.Args.InputFolderName}/{self.SurfaceFileName} -ofile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -endpoints 1 -resampling 1 -resamplingstep 4")
         os.system(f"vmtkcenterlinesmoothing -ifile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -ofile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -factor 0.1 -iterations 200")
         os.system(f"vmtkcenterlineresampling -ifile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -ofile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -length {self.CL_Point_Length}")
         
+        # save the Centerline for further visualizations
         self.CLFile = ReadVTPFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name}")
-        self.NPoints = self.CLFile.GetNumberOfPoints()
+        self.NPoints = self.CLFile.GetNumberOfPoints() # the number of points along the centerline; specifies the number of samples taken along the vessel for C(x)
 
     def ExtractPieceWiseCeneterLine(self):
         center = []
@@ -109,7 +115,7 @@ class CylinderClipAlongCL():
         Sphere.SetCenter(center)
         Sphere.SetRadius(self.radius)
 
-        #Implement vtkclipping filter "sphere"
+        #Implement vtkclipping filter with the defined "sphere" as the clipping function
         clipper = vtk.vtkClipDataSet()
         clipper.SetInputData(volume)
         clipper.SetClipFunction(Sphere)
@@ -119,7 +125,7 @@ class CylinderClipAlongCL():
 
         #WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFileName}/clipper.vtu", clipper.GetOutput())
         
-        #AverageFilter on each Sphere
+        # calculating the average pixel value iside each Sphere
         ArrayName = clipper.GetOutput().GetPointData().GetArrayName(0)
         SphereOutput = clipper.GetOutput().GetPointData().GetArray(ArrayName)
         SphereOutput = vtk_to_numpy(SphereOutput)
@@ -129,24 +135,26 @@ class CylinderClipAlongCL():
 
     def AppendVolumes(self,volume1,volume2):
         append_filter = vtk.vtkAppendFilter()
-        append_filter.AddInputData(volume1)
+        append_filter.AddInputData(volume1) 
         append_filter.AddInputData(volume2)
         append_filter.Update()
         return append_filter.GetOutput()
     
     def ContrastDisperssion(self, Inflow_Contrast_Temporal, CenterLineContrastDict):
         [x, t, UpSlope] = self.CreateCoords()
-        Inflow_Upslope = Inflow_Contrast_Temporal[self.Args.delay: self.Args.peak]
+        Inflow_Upslope = Inflow_Contrast_Temporal[self.Args.delay: self.Args.peak] # the images that are taken during the upslope time
 
-        CenterLine_Contrast = CenterLineContrastDict[self.VolumeFileNames[self.Args.peak]]
-        [xslope, xpred] = Model1D(x,CenterLine_Contrast)
-        [tslope, tpred] = Model1D(UpSlope, Inflow_Upslope)
-        VelocityPredicted = tslope/xslope
+        # find the velocity before interpolation (just in case, if the vessel doesn't have a jump in pixel values need interpolation)
+        CenterLine_Contrast = CenterLineContrastDict[self.VolumeFileNames[self.Args.peak]] # taking the centerline extracted from the image at the peak of the upslope
+        [xslope, xpred] = Model1D(x,CenterLine_Contrast) # calculating dC/dx
+        [tslope, tpred] = Model1D(UpSlope, Inflow_Upslope) # calculating dC/dt
+        VelocityPredicted = tslope/xslope # calculate the velocity of Contrast Dispersion
         print("the predicted velocity is: ", abs(VelocityPredicted), " mm/s")
 
-        #Plotting Curves
+        #Plotting Curves C(x) and C(t)
         plt.figure(figsize=(13,5))
 
+        # plot the contrast along the time
         plt.subplot(121)
         plt.scatter(t.reshape(-1,1), Inflow_Contrast_Temporal.reshape(-1,1), label = "Inflow Center")
         plt.plot(UpSlope.reshape(-1,1), tpred.reshape(-1,1), color = 'red', label = 'Linear (Inflow Cenetr)')
@@ -154,6 +162,7 @@ class CylinderClipAlongCL():
         plt.xlabel("time (s)")
         plt.legend()
 
+        # plot the contrast along the centerline which was wxtracted out of the image at the peak up-slope
         plt.subplot(122)
         plt.scatter(x.reshape(-1,1), CenterLine_Contrast.reshape(-1,1), label = "Lumen Centerline")
         plt.plot(x.reshape(-1,1), xpred.reshape(-1,1), color = 'red', label='Linear (Linear Center)')
@@ -163,6 +172,7 @@ class CylinderClipAlongCL():
         
         plt.show()
 
+        # Write the text output file to store the contrast in time and along the centerline
         TextFileName = "Output.txt"
         TextFile_data = [
             ["x_array (mm)"] + list(item[0] for item in x),
@@ -176,15 +186,17 @@ class CylinderClipAlongCL():
             for row in TextFile_data:
                 writefile.write(", ".join(str(item) for item in row) + "\n")
 
-        interp_CenterLineContrastDict = self.UpslopeInterpolation(CenterLineContrastDict,t)
+        # extracting the centerline after the interpolation; half of the points are extracted from the peak and the other half from the pre-peak and being concatenated
+        interp_CenterLineContrastDict = self.TemporalInterpolation(CenterLineContrastDict,t)
         dict_item_interp = list(interp_CenterLineContrastDict.items())
         CenterLine_Contrast0 = dict_item_interp[self.interpolation_pre_peak][1]
         CenterLine_Contrast1 = dict_item_interp[self.interpolation_peak][1]
         CenterLine_Contrast2 = np.concatenate((CenterLine_Contrast1[:int(self.NPoints/2)], CenterLine_Contrast0[int(self.NPoints/2):]))
         
-        [xslope, xpred] = Model1D(x,CenterLine_Contrast2)
-        VelocityPredicted = tslope/xslope
+        [xslope, xpred] = Model1D(x,CenterLine_Contrast2) # calculating dC/dx from the concatenated centerline points
+        VelocityPredicted = tslope/xslope # calculating the velocity after interpolation
 
+        # plot the peak and pre-peak centerlines and the concatenated centerline
         plt.figure(figsize=(10,5))
         plt.plot(x.reshape(-1,1), CenterLine_Contrast2.reshape(-1,1), color = 'orange', label = 'concatenated signal')
         plt.scatter(x.reshape(-1,1), CenterLine_Contrast1.reshape(-1,1), color= 'green', label = 'peak centerline', marker='^')
@@ -198,7 +210,7 @@ class CylinderClipAlongCL():
         print("the predicted velocity after interpolation is: ", abs(VelocityPredicted), " mm/s")
 
 
-    def UpslopeInterpolation(self,CenterLineContrastDict, t):
+    def TemporalInterpolation(self,CenterLineContrastDict, t):
         dict_item = sorted(CenterLineContrastDict.items())
 
         new_length = len(t) * self.interpolation_factor #interpolate the centerline in time domain because of the dynamic shuttle mode
@@ -234,6 +246,7 @@ class CylinderClipAlongCL():
 
     def CreateCoords(self):
         
+        # Create the spatial coordinate (x) along the centerline of the vessel
         point0 = self.CLFile.GetPoint(0)
         point = self.CLFile.GetPoint(self.NPoints-1)
         Length = (
@@ -250,9 +263,12 @@ class CylinderClipAlongCL():
                 (point[0]-point0[0])**2 +
                 (point[1]-point0[1])**2 +
                 (point[2]-point0[2])**2)**0.5
-            
+        
+        # Create the time coordinate based on the heartbeat; each images in CT-MPI are by 4 heartbeats apart
         TimePoints = self.VolumeFileNames.__len__()
         Time_Coord = np.array([i*self.TemporalInterval for i in range(TimePoints)])
+
+        # seperating the upslope part of the coordinate
         UpSlope = Time_Coord[self.Args.delay:self.Args.peak]
 
         return CL_Coord, Time_Coord, UpSlope
@@ -272,23 +288,30 @@ class CylinderClipAlongCL():
         return sorted(InputVolumesDict.items())
 
     def main(self):
+        print("-"*10, "***" "-"*10)
         self.ExtractCeneterLine()
-        print("number of point along the centerline = ", self.NPoints)
+        print("-"*10, "***" "-"*10)
+        print("--- number of point along the centerline = ", self.NPoints)
 
+        print("-"*10, "***" "-"*10)
+        print("--- Extracting the temporal attenuation curve at the inflow of the vessel")
         InputVolumesDict = self.ReadInputVolumes()
         Inflow_Contrast_Temporal = np.empty([self.VolumeFileNames.__len__(),1])
 
         count = 0
         for volume in InputVolumesDict:
-            print(f"--- Reading the Inflow center of {volume[0]}")
+            print(f"--- Reading the center of the Inflow of {volume[0]}")
             Inflow_Clip = self.SphereClip(self.CLFile.GetPoint(0), volume[1])
             Inflow_Contrast_Temporal[count] = Inflow_Clip[1]
             count += 1
+        
+        print(f"--- Storing the inflow clipper in a vtu file at {self.Args.InputFolderName}/{self.OutputFolderName}/{InflowClipFileName}")
         InflowClipFileName = 'InflowClip.vtu'
         WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{InflowClipFileName}", Inflow_Clip[0])
-        # Read the centerline of the every files in the upslope
+        
+        # Reading and Storing the centerline of the every files in the upslope
         CenterLineContrastDict = {volume[0]: None for volume in InputVolumesDict[self.Args.delay:self.Args.peak+1]}
-
+        print("--- Extracting the average contrast along the centerline of the vessel")
         count = 1
         for volume in InputVolumesDict:
             print(f"--- Reading the centerline of the volume: {volume[0]}")
@@ -307,10 +330,12 @@ class CylinderClipAlongCL():
         
         #CenterLineContrastDict = dict(sorted(CenterLineContrastDict.items()), key=lambda x: x[0])
         ClipOutputFile = "ClippedVolume.vtu"
+        print(f"--- Storing the centerline clipper at peak in a vtu file at {self.Args.InputFolderName}/{self.OutputFolderName}/{ClipOutputFile}")
         WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{ClipOutputFile}", PeakCylinderClip)
 
         #CenterLine_Contrast_ = self.CenterLineMeshSection(ClipOutputFile)
-        
+        print("-"*10, "***" "-"*10)
+        print("--- Implementing the contrast dispersion and the predicted velocity")
         self.ContrastDisperssion(Inflow_Contrast_Temporal, CenterLineContrastDict)
 
 if __name__ == "__main__":
@@ -324,6 +349,6 @@ if __name__ == "__main__":
 
     #CylinderClipAlongCL(args).ExtractPieceWiseCeneterLine()
     #CylinderClipAlongCL(args).ReadInputVolumes()
-    CylinderClipAlongCL(args).main()
+    ContrastDispersionAlongVessel(args).main()
 
 
