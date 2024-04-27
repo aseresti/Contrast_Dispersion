@@ -16,7 +16,7 @@ import argparse
 import numpy as np
 import vtk
 import matplotlib.pyplot as plt
-from typing import List, Dict
+from typing import List, Dict, Tuple
 #from itertools import zip_longest
 
 from utilities import ReadVTUFile, ReadVTPFile, WriteVTUFile, GetCentroid, vtk_to_numpy, ThresholdInBetween
@@ -25,6 +25,11 @@ from ContrastTools import Model1D, MAFilter
 
 class ContrastDispersionAlongVessel():
     def __init__(self, args: argparse) -> None:
+        """the initial operations  on input data
+
+        Args:
+            args (argparse): Must contain the following instances: an InputFolderName, HeartBeat, delay, peak
+        """
         self.Args = args
         
         # takes the input folder name to read the Input Volumes, Input Surface
@@ -57,7 +62,10 @@ class ContrastDispersionAlongVessel():
         self.interpolation_peak = self.interpolation_factor * self.Args.peak - 2 # the index of the peak point of the time attenuation curve after interpolation
         self.interpolation_pre_peak = self.interpolation_peak - int(self.interpolation_factor/2) # the index of the pre peak point of the time attenuation curve after interpolation
 
-    def ExtractCeneterLine(self):
+    def ExtractCeneterLine(self) -> None:
+        """Extracts the centerline outof the surface of the vessel. Reads and stores the centerline and the number of points along it as features of the instance of the class
+        """
+
         CL_File_Name = "aorta_cl.vtp"
         # to first extract the centerline, then smooth it and finally resample it using the provided length between each CL point
         os.system(f"vmtkcenterlines -ifile {self.Args.InputFolderName}/{self.SurfaceFileName} -ofile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -endpoints 1 -resampling 1 -resamplingstep 4")
@@ -68,7 +76,7 @@ class ContrastDispersionAlongVessel():
         self.CLFile = ReadVTPFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name}")
         self.NPoints = self.CLFile.GetNumberOfPoints() # the number of points along the centerline; specifies the number of samples taken along the vessel for C(x)
 
-    def ExtractPieceWiseCeneterLine(self):
+    def ExtractPieceWiseCeneterLine(self) -> np.array:
         center = []
         count = 0
         for SliceName in self.SliceNames:
@@ -88,7 +96,15 @@ class ContrastDispersionAlongVessel():
         
         return CLPoints
     
-    def CenterLineMeshSection(self,volume):
+    def CenterLineMeshSection(self,volume: vtk.vtkUnstructuredGrid) -> np.array:
+        """ Extracts the surface mesh sections along the centerline and reads the average pixel values.
+
+        Args:
+            volume (vtk.vtkUnstructuredGrid): the vtu file onto which the pixel values are projected
+        Returns:
+            Contrast_Along_CL (np.array): An array including the average pixel values along the centerline of the vessel.
+        """
+
         CL_File_Name = "aorta_cl.vtp"
         MS_File_Name = "aorta_mesh_section.vtp"
         os.system(f"vmtkcenterlinemeshsections -centerlinesfile {self.Args.InputFolderName}/{self.OutputFolderName}/{CL_File_Name} -ifile {self.Args.InputFolderName}/{self.OutputFolderName}/{volume} -ofile {self.Args.InputFolderName}/{self.OutputFolderName}/{MS_File_Name}")
@@ -109,7 +125,18 @@ class ContrastDispersionAlongVessel():
     
 
 
-    def SphereClip(self, center, volume):
+    def SphereClip(self, center: vtk.vtkPoints, volume: vtk.vtkUnstructuredGrid) -> Tuple[vtk.vtkUnstructuredGrid, float]:
+        """ clips the sphere out of the given volume on the given center point 
+
+        Args:
+            center (vtk.vtkPoints): (x, y, z) of the point from points along the centerline
+            volume (vtk.vtkUnstructuredGrid): the vtu file onto which the pixel values are projected
+
+        Returns:
+            clipper.GetOutput() (vtk.vtkUnstructuredGrid): The clipped sphere containing the pixel value data and other specifics of the given volume
+            AveragePixelValue (float): The average pixel value inside the clipped sphere
+        """
+
         #define the Sphere
         Sphere = vtk.vtkSphere()
         Sphere.SetCenter(center)
@@ -129,18 +156,35 @@ class ContrastDispersionAlongVessel():
         ArrayName = clipper.GetOutput().GetPointData().GetArrayName(0)
         SphereOutput = clipper.GetOutput().GetPointData().GetArray(ArrayName)
         SphereOutput = vtk_to_numpy(SphereOutput)
-        averagePixelValue = np.average(SphereOutput)
+        AveragePixelValue = np.average(SphereOutput)
 
-        return clipper.GetOutput(), averagePixelValue
+        return clipper.GetOutput(), AveragePixelValue
 
-    def AppendVolumes(self,volume1,volume2):
+    def AppendVolumes(self,volume1: vtk.vtkUnstructuredGrid, volume2: vtk.vtkUnstructuredGrid) -> vtk.vtkUnstructuredGrid:
+        """Appends two given volumes, it is used to have all of the sphere clips stored in one single file
+
+        Args:
+            volume1 (vtk.vtkUnstructuredGrid): The clipped volume
+            volume2 (vtk.vtkUnstructuredGrid): The clipped volume
+
+        Returns:
+            vtk.vtkUnstructuredGrid: The appended volume
+        """
         append_filter = vtk.vtkAppendFilter()
         append_filter.AddInputData(volume1) 
         append_filter.AddInputData(volume2)
         append_filter.Update()
+
         return append_filter.GetOutput()
     
-    def ContrastDisperssion(self, Inflow_Contrast_Temporal, CenterLineContrastDict):
+    def ContrastDisperssion(self, Inflow_Contrast_Temporal: np.array, CenterLineContrastDict: Dict[np.array]) -> None:
+        """ Implements the contrast Dispersion method taking the temporal and spatial data
+
+        Args:
+            Inflow_Contrast_Temporal (np.array): The average pixel values along in the center of the Inflow of the vessel
+            CenterLineContrastDict (Dict[np.array]): A dictionary containing the average pixel value along the centerline of the vessel in different time points
+        """
+
         [x, t, UpSlope] = self.CreateCoords()
         Inflow_Upslope: np.array[float] = Inflow_Contrast_Temporal[self.Args.delay: self.Args.peak] # the images that are taken during the upslope time
 
@@ -211,7 +255,17 @@ class ContrastDispersionAlongVessel():
         print("the predicted velocity after interpolation is: ", abs(VelocityPredicted), " mm/s")
 
 
-    def TemporalInterpolation(self,CenterLineContrastDict, t):
+    def TemporalInterpolation(self,CenterLineContrastDict: Dict[np.array], t: np.array) -> Dict[np.array]:
+        """Takes the average pixel values along the centerline in different time points and interpolates them in time 
+
+        Args:
+            CenterLineContrastDict (Dict[np.array]): A dictionary containing the average pixel value along the centerline of the vessel in several time steps
+            t (np.array): the time domain coordinate
+
+        Returns:
+            Dict[np.array: A dictionary containing the average pixel value along the centerline of the vessel in interpolated time steps
+        """
+
         dict_item: list = sorted(CenterLineContrastDict.items())
 
         new_length: int = len(t) * self.interpolation_factor # signal length after interpolation
@@ -243,11 +297,16 @@ class ContrastDispersionAlongVessel():
         plt.xlabel('time (s)')
         plt.legend()
         plt.show()
+        
         return New_CenterLineContrastDict
 
 
-    def CreateCoords(self):
-        
+    def CreateCoords(self) -> Tuple[np.array, np.array, np.array]:
+        """ Generates the spatial and temporal coordinates
+
+        Returns:
+            np.array: spatial and temporal coordinates
+        """
         # Create the spatial coordinate (x) along the centerline of the vessel
         point0 = self.CLFile.GetPoint(0)
         point = self.CLFile.GetPoint(self.NPoints-1)
@@ -275,7 +334,12 @@ class ContrastDispersionAlongVessel():
 
         return CL_Coord, Time_Coord, UpSlope
 
-    def ReadInputVolumes(self):
+    def ReadInputVolumes(self) -> Dict[vtk.vtkUnstructuredGrid]:
+        """ Takes the input volume names to read it as a vtu file and returns the vtk.vtkUnstructuredGrid
+
+        Returns:
+            Dict[vtk.vtkUnstructuredGrid]: A dictionary containing the input volumes
+        """
         InputVolumesDict = dict()
 
         for volume_ in self.VolumeFileNames:
@@ -289,7 +353,9 @@ class ContrastDispersionAlongVessel():
         
         return sorted(InputVolumesDict.items())
 
-    def main(self):
+    def main(self) -> None:
+        """ The core of the class to handle the process on sequence
+        """
         print("-"*10, "***" "-"*10)
         self.ExtractCeneterLine()
         print("-"*10, "***" "-"*10)
