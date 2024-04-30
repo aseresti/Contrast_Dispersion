@@ -51,11 +51,11 @@ class ContrastDispersionAlongVessel():
         else:
             print(f"*** {self.OutputFolderName} Already Exists!")
 
-        self.TemporalInterval = 60 / self.Args.HeartBeat # the temporal interval between each timestep
+        self.TemporalInterval = 4 * 60 / self.Args.HeartBeat # the temporal interval between each timestep
         
         # Adjustable Parameters (depending on the case, the user might need to change these parameters)
         self.MAFilter_Length = 0 # should you prefer to smooth the data along the centerline, you can use the MAFilter or Moving average filter
-        self.radius = 5 # the radius of the sphere clip 
+        self.radius = 3 # the radius of the sphere clip 
         # to-do: set the radius of the sphere clip as a percentage of the redius of the descending aorta
         self.CL_Point_Length = 4 # the distance between the two CL points in mm (Try to avoid overlapping sphere clips)
         self.interpolation_factor = 2  # To compensate the dynamic shuttle mode in CT scanners, at least you need to interpolate it with a factor of 2. 4 is recommended.
