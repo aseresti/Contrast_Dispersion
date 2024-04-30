@@ -177,7 +177,7 @@ class ContrastDispersionAlongVessel():
 
         return append_filter.GetOutput()
     
-    def ContrastDisperssion(self, Inflow_Contrast_Temporal: np.array, CenterLineContrastDict: Dict[np.array]) -> None:
+    def ContrastDisperssion(self, Inflow_Contrast_Temporal: np.array, CenterLineContrastDict: Dict[str,np.array]) -> None:
         """ Implements the contrast Dispersion method taking the temporal and spatial data
 
         Args:
@@ -232,7 +232,7 @@ class ContrastDispersionAlongVessel():
                 writefile.write(", ".join(str(item) for item in row) + "\n")
 
         # extracting the centerline after the interpolation; half of the points are extracted from the peak and the other half from the pre-peak and being concatenated
-        interp_CenterLineContrastDict: Dict[np.array] = self.TemporalInterpolation(CenterLineContrastDict,t)
+        interp_CenterLineContrastDict: Dict[str,np.array] = self.TemporalInterpolation(CenterLineContrastDict,t)
         dict_item_interp = list(interp_CenterLineContrastDict.items())
         CenterLine_Contrast0: np.array = dict_item_interp[self.interpolation_pre_peak][1]
         CenterLine_Contrast1: np.array = dict_item_interp[self.interpolation_peak][1]
@@ -255,7 +255,7 @@ class ContrastDispersionAlongVessel():
         print("the predicted velocity after interpolation is: ", abs(VelocityPredicted), " mm/s")
 
 
-    def TemporalInterpolation(self,CenterLineContrastDict: Dict[np.array], t: np.array) -> Dict[np.array]:
+    def TemporalInterpolation(self,CenterLineContrastDict: Dict[str,np.array], t: np.array) -> Dict[str,np.array]:
         """Takes the average pixel values along the centerline in different time points and interpolates them in time 
 
         Args:
@@ -271,7 +271,7 @@ class ContrastDispersionAlongVessel():
         new_length: int = len(t) * self.interpolation_factor # signal length after interpolation
         new_t: np.array = np.linspace(t[0], t[-1], new_length) # interpolation coordinate
 
-        New_CenterLineContrastDict: Dict[np.array] = {f'interp_{i}': np.empty([self.NPoints,1]) for i in range(0,new_length)} #interpolated data
+        New_CenterLineContrastDict: Dict[str,np.array] = {f'interp_{i}': np.empty([self.NPoints,1]) for i in range(0,new_length)} #interpolated data
 
         for point in range(self.NPoints):
             Points = np.empty([len(t)])
@@ -334,7 +334,7 @@ class ContrastDispersionAlongVessel():
 
         return CL_Coord, Time_Coord, UpSlope
 
-    def ReadInputVolumes(self) -> Dict[vtk.vtkUnstructuredGrid]:
+    def ReadInputVolumes(self) -> Dict[str,vtk.vtkUnstructuredGrid]:
         """ Takes the input volume names to read it as a vtu file and returns the vtk.vtkUnstructuredGrid
 
         Returns:
@@ -363,7 +363,7 @@ class ContrastDispersionAlongVessel():
 
         print("-"*10, "***" "-"*10)
         print("--- Extracting the temporal attenuation curve at the inflow of the vessel")
-        InputVolumesDict: Dict[vtk.vtkUnstructuredGrid] = self.ReadInputVolumes()
+        InputVolumesDict: Dict[str,vtk.vtkUnstructuredGrid] = self.ReadInputVolumes()
         Inflow_Contrast_Temporal: np.array[float] = np.empty([self.VolumeFileNames.__len__(),1])
 
         count = 0
@@ -373,12 +373,12 @@ class ContrastDispersionAlongVessel():
             Inflow_Contrast_Temporal[count] = Inflow_Clip[1]
             count += 1
         
-        print(f"--- Storing the inflow clipper in a vtu file at {self.Args.InputFolderName}/{self.OutputFolderName}/{InflowClipFileName}")
         InflowClipFileName: str = 'InflowClip.vtu'
+        print(f"--- Storing the inflow clipper in a vtu file at {self.Args.InputFolderName}/{self.OutputFolderName}/{InflowClipFileName}")
         WriteVTUFile(f"{self.Args.InputFolderName}/{self.OutputFolderName}/{InflowClipFileName}", Inflow_Clip[0])
         
         # Reading and Storing the centerline of the every files in the upslope
-        CenterLineContrastDict: Dict[np.array] = {volume[0]: None for volume in InputVolumesDict[:]}
+        CenterLineContrastDict: Dict[str,np.array] = {volume[0]: None for volume in InputVolumesDict[:]}
         print("--- Extracting the average contrast along the centerline of the vessel")
         count = 1
         for volume in InputVolumesDict:
