@@ -268,11 +268,10 @@ class ContrastDispersionAlongVessel():
 
         dict_item: list = sorted(CenterLineContrastDict.items())
 
-        indeces: np.array = np.linspace(0,len(t))
-        indeces_times2: np.array = np.linspace(0,len(t), self.interpolation_factor*len(indeces))
-    
+        indeces: np.array = np.arange(0,len(t),1)
+        indeces_times2: np.array = np.arange(0,len(t), 1./self.interpolation_factor)
+
         new_t: np.array = np.interp(indeces_times2, indeces, t)
-        
         New_CenterLineContrastDict: Dict[str,np.array] = {f'interp_{i}': np.empty([self.NPoints,1]) for i in range(0,len(indeces_times2))} #interpolated data
 
         for point in range(self.NPoints):
@@ -301,7 +300,6 @@ class ContrastDispersionAlongVessel():
         plt.show()
         
         return New_CenterLineContrastDict
-
 
     def CreateCoords(self) -> Tuple[np.array, np.array, np.array]:
         """ Generates the spatial and temporal coordinates
