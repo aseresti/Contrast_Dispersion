@@ -58,7 +58,7 @@ class ContrastDispersionAlongVessel():
         self.radius = 5 # the radius of the sphere clip 
         # to-do: set the radius of the sphere clip as a percentage of the redius of the descending aorta
         self.CL_Point_Length = 4 # the distance between the two CL points in mm (Try to avoid overlapping sphere clips)
-        self.interpolation_factor = 4  # To compensate the dynamic shuttle mode in CT scanners, at least you need to interpolate it with a factor of 2. 4 is recommended.
+        self.interpolation_factor = 2  # To compensate the dynamic shuttle mode in CT scanners, at least you need to interpolate it with a factor of 2. 4 is recommended.
         self.interpolation_peak = self.interpolation_factor * self.Args.peak - 2 # the index of the peak point of the time attenuation curve after interpolation
         self.interpolation_pre_peak = self.interpolation_peak - int(self.interpolation_factor/2) # the index of the pre peak point of the time attenuation curve after interpolation
 
@@ -268,10 +268,12 @@ class ContrastDispersionAlongVessel():
 
         dict_item: list = sorted(CenterLineContrastDict.items())
 
-        new_length: int = len(t) * self.interpolation_factor # signal length after interpolation
-        new_t: np.array = np.linspace(t[0], t[-1], new_length) # interpolation coordinate
-
-        New_CenterLineContrastDict: Dict[str,np.array] = {f'interp_{i}': np.empty([self.NPoints,1]) for i in range(0,new_length)} #interpolated data
+        indeces: np.array = np.linspace(0,len(t))
+        indeces_times2: np.array = np.linspace(0,len(t), self.interpolation_factor*len(indeces))
+    
+        new_t: np.array = np.interp(indeces_times2, indeces, t)
+        
+        New_CenterLineContrastDict: Dict[str,np.array] = {f'interp_{i}': np.empty([self.NPoints,1]) for i in range(0,len(indeces_times2))} #interpolated data
 
         for point in range(self.NPoints):
             Points = np.empty([len(t)])
