@@ -17,7 +17,7 @@ import numpy as np
 import vtk
 import matplotlib.pyplot as plt
 from typing import List, Dict, Tuple
-#from itertools import zip_longest
+from scipy.interpolate import CubicSpline
 
 from utilities import ReadVTUFile, ReadVTPFile, WriteVTUFile, GetCentroid, vtk_to_numpy, ThresholdInBetween
 from ContrastTools import Model1D, MAFilter
@@ -254,6 +254,37 @@ class ContrastDispersionAlongVessel():
         
         print("the predicted velocity after interpolation is: ", abs(VelocityPredicted), " mm/s")
 
+    def TAC_FunctionApproximation(self, CenterLineContrastDict: Dict[str,np.array]) -> Tuple[np.array,np.array]:
+        """This function takes the centerline average values, seperates the upper and the lower halves.
+        It extract the Tissue Attenuation Curve (TAC) by sorting out the average of the upper and the lower halves.
+
+
+        Args:
+            CenterLineContrastDict (Dict[str,np.array]): A dictionary containing the average pixel value along the centerline of the vessel in several time steps.
+
+        Returns:
+            Tuple[np.array,np.array]: time coordinate for interpolation, Tissue Attenuation Curve
+        """
+        dict_item: list = sorted(CenterLineContrastDict.items())
+
+        TimePoints: int = len(self.VolumeFileNames)
+        Time_Coord_interp: np.array = np.array([i*self.TemporalInterval/2 for i in range(TimePoints*2)])
+
+        TAC = np.empty(TimePoints*2)
+        for i, (key, value) in enumerate(dict_item):
+            TAC[2*i] = np.average(value[:int(self.NPoints/2)-2])
+            TAC[2*i+1] = np.average(value[int(self.NPoints/2)+2:])
+        
+        plt.figure(figsize=(10,7))
+        plt.plot(Time_Coord_interp.reshape(-1,1),TAC.reshape(-1,1), label='TAC function')
+        plt.scatter(Time_Coord_interp[::2].reshape(-1,1),TAC[::2].reshape(-1,1), marker='o', label='upper half')
+        plt.scatter(Time_Coord_interp[1:2].reshape(-1,1),TAC[1:2].reshape(-1,1), marker='o', label='lower half')
+        plt.title("Tissue Attenuation Curve Function Approximation")
+        plt.xlabel("Time (s)")
+        plt.legend()
+        plt.show()
+
+        return Time_Coord_interp, TAC
 
     def TemporalInterpolation(self,CenterLineContrastDict: Dict[str,np.array], t: np.array) -> Dict[str,np.array]:
         """Takes the average pixel values along the centerline in different time points and interpolates them in time 
