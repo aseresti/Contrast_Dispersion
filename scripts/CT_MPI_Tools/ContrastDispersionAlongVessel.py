@@ -285,6 +285,29 @@ class ContrastDispersionAlongVessel():
         plt.show()
 
         return Time_Coord_interp, TAC
+    
+    def TemporalInterpolationBasedonTAC(self,CenterLineContrastDict: Dict[str,np.array], t: np.array) -> Dict[str,np.array]:
+
+        (t_interp, TAC) = self.TAC_FunctionApproximation(CenterLineContrastDict)
+        
+
+        dict_item: list = sorted(CenterLineContrastDict.items())
+
+        for point in range(self.NPoints):
+            Points = [item[1][point] for item in dict_item]
+
+            t_combine = np.concatenate(t_interp,t)
+            signal_combine = np.concatenate(TAC, Points)
+            interpolator = CubicSpline(t_combine,signal_combine)
+            interpolateSignal = interpolator()
+
+
+            
+
+            #interpolateSignal = np.interp(t_interp, t, Points)
+            
+            #for i, (key, value) in enumerate(New_CenterLineContrastDict.items()):
+            #    value[point] = interpolateSignal[i]
 
     def TemporalInterpolation(self,CenterLineContrastDict: Dict[str,np.array], t: np.array) -> Dict[str,np.array]:
         """Takes the average pixel values along the centerline in different time points and interpolates them in time 
