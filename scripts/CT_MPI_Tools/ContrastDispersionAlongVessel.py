@@ -278,7 +278,7 @@ class ContrastDispersionAlongVessel():
         plt.figure(figsize=(10,7))
         plt.plot(Time_Coord_interp.reshape(-1,1),TAC.reshape(-1,1), label='TAC function')
         plt.scatter(Time_Coord_interp[::2].reshape(-1,1),TAC[::2].reshape(-1,1), marker='o', label='upper half')
-        plt.scatter(Time_Coord_interp[1:2].reshape(-1,1),TAC[1:2].reshape(-1,1), marker='o', label='lower half')
+        plt.scatter(Time_Coord_interp[1::2].reshape(-1,1),TAC[1::2].reshape(-1,1), marker='o', label='lower half')
         plt.title("Tissue Attenuation Curve Function Approximation")
         plt.xlabel("Time (s)")
         plt.legend()
@@ -292,22 +292,29 @@ class ContrastDispersionAlongVessel():
         
 
         dict_item: list = sorted(CenterLineContrastDict.items())
-
+        New_CenterLineContrastDict: Dict[str,np.array] = {f'interp_{i}': np.empty([self.NPoints,1]) for i in range(0,len(t_interp))} #interpolated data
+        t_combine = np.concatenate(t_interp,t)
         for point in range(self.NPoints):
             Points = [item[1][point] for item in dict_item]
 
-            t_combine = np.concatenate(t_interp,t)
             signal_combine = np.concatenate(TAC, Points)
             interpolator = CubicSpline(t_combine,signal_combine)
-            interpolateSignal = interpolator()
-
-
+            interpolateSignal = interpolator(t_interp)
             
-
-            #interpolateSignal = np.interp(t_interp, t, Points)
+            for i, (key, value) in enumerate(New_CenterLineContrastDict.items()):
+                value[point] = interpolateSignal[i]
             
-            #for i, (key, value) in enumerate(New_CenterLineContrastDict.items()):
-            #    value[point] = interpolateSignal[i]
+        plt.figure(figsize=(13,7))
+        plt.scatter(t.reshape(-1,1), Points.reshape(-1,1), marker='o', label='Before Interpolation')
+        plt.scatter(t_interp.reshape(-1,1), interpolateSignal.reshape(-1,1), marker='*', label= 'After Interpolation')
+        plt.scatter(t_interp.reshape(-1,1), TAC.reshape(-1,1), marker='+', label='TAC')
+        #plt.scatter(t_interp[self.interpolation_pre_peak], interpolateSignal[self.interpolation_pre_peak], marker='+', label='pre peak point')
+        plt.title('Temporal Attenuation Curve')
+        plt.xlabel('time (s)')
+        plt.legend()
+        plt.show()
+
+        return New_CenterLineContrastDict
 
     def TemporalInterpolation(self,CenterLineContrastDict: Dict[str,np.array], t: np.array) -> Dict[str,np.array]:
         """Takes the average pixel values along the centerline in different time points and interpolates them in time 
@@ -319,14 +326,14 @@ class ContrastDispersionAlongVessel():
         Returns:
             Dict[np.array: A dictionary containing the average pixel value along the centerline of the vessel in interpolated time steps
         """
-
+        (t_interp, TAC) = self.TAC_FunctionApproximation(CenterLineContrastDict)
         dict_item: list = sorted(CenterLineContrastDict.items())
 
-        indeces: np.array = np.arange(0,len(t),1)
-        indeces_times2: np.array = np.arange(0,len(t), 1./self.interpolation_factor)
+        #indeces: np.array = np.arange(0,len(t),1)
+        #indeces_times2: np.array = np.arange(0,len(t), 1./self.interpolation_factor)
 
-        new_t: np.array = np.interp(indeces_times2, indeces, t)
-        New_CenterLineContrastDict: Dict[str,np.array] = {f'interp_{i}': np.empty([self.NPoints,1]) for i in range(0,len(indeces_times2))} #interpolated data
+        #new_t: np.array = np.interp(indeces_times2, indeces, t)
+        New_CenterLineContrastDict: Dict[str,np.array] = {f'interp_{i}': np.empty([self.NPoints,1]) for i in range(0,len(t_interp))} #interpolated data
 
         for point in range(self.NPoints):
             Points = np.empty([len(t)])
@@ -337,7 +344,7 @@ class ContrastDispersionAlongVessel():
                 count +=1
             
 
-            interpolateSignal = np.interp(new_t, t, Points)
+            interpolateSignal = np.interp(t_interp, t, Points)
             
             for i, (key, value) in enumerate(New_CenterLineContrastDict.items()):
                 value[point] = interpolateSignal[i]
@@ -345,9 +352,10 @@ class ContrastDispersionAlongVessel():
         # plotting the time attenuation curve of the initial signal and the interpolated signal; specifying the peak and pre-peak time-points; The plot is based on the last point on the centerline
         plt.figure(figsize=(13,7))
         plt.scatter(t.reshape(-1,1), Points.reshape(-1,1), marker='o', label='Before Interpolation')
-        plt.scatter(new_t.reshape(-1,1), interpolateSignal.reshape(-1,1), marker='*', label= 'After Interpolation')
-        plt.scatter(new_t[self.interpolation_peak], interpolateSignal[self.interpolation_peak], marker='+', label='peak point')
-        plt.scatter(new_t[self.interpolation_pre_peak], interpolateSignal[self.interpolation_pre_peak], marker='+', label='pre peak point')
+        plt.scatter(t_interp.reshape(-1,1), interpolateSignal.reshape(-1,1), marker='*', label= 'After Interpolation')
+        plt.scatter(t_interp.reshape(-1,1), TAC.reshape(-1,1), marker = 'x', label='TAC' )
+        plt.scatter(t_interp[self.interpolation_peak], interpolateSignal[self.interpolation_peak], marker='+', label='peak point')
+        plt.scatter(t_interp[self.interpolation_pre_peak], interpolateSignal[self.interpolation_pre_peak], marker='+', label='pre peak point')
         plt.title('Temporal Attenuation Curve')
         plt.xlabel('time (s)')
         plt.legend()
