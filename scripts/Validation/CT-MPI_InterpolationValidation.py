@@ -66,16 +66,16 @@ def ExtractTemporalData(t,TheDict):
 if __name__ == "__main__":
 
     parser1 = argparse.ArgumentParser()
-    parser1.add_argument("-InputFolderName", "--InputFolderName", type=str, required=False, default="/Users/ana/Documents/AnahitaSeresti/02_ContrastStudy/Image_Based_Volumes/Post-CABG/CABG6B/interpolation_validation",  dest="InputFolderName")
-    parser1.add_argument("-HeartBeat", "--HeartBeat", type=float, required=False, dest="HeartBeat", default=30)
+    parser1.add_argument("-InputFolderName", "--InputFolderName", type=str, required=False, default="/Users/ana/Documents/AnahitaSeresti/02_ContrastStudy/Image_Based_Volumes/Post-CABG/CABG10B/step6_InterpolationValidation",  dest="InputFolderName")
+    parser1.add_argument("-HeartBeat", "--HeartBeat", type=float, required=False, dest="HeartBeat", default=37.5)
     parser1.add_argument("-delay", "--delay", type=int, required=False, dest="delay", default=1, help="bolus time delay before upslope rises")
     parser1.add_argument("-peak", "--peak", type=int, required=False, dest="peak",default=3, help="the number of image on witch the upslope reaches its peak")
 
     args1 = parser1.parse_args()
 
     parser2 = argparse.ArgumentParser()
-    parser2.add_argument("-InputFolderName", "--InputFolderName", type=str, required=False, default="/Users/ana/Documents/AnahitaSeresti/02_ContrastStudy/Image_Based_Volumes/Post-CABG/CABG6B/Step4_Projected_Volume_Ascending_Aorta",  dest="InputFolderName")
-    parser2.add_argument("-HeartBeat", "--HeartBeat", type=float, required=False, dest="HeartBeat", default=60)
+    parser2.add_argument("-InputFolderName", "--InputFolderName", type=str, required=False, default="/Users/ana/Documents/AnahitaSeresti/02_ContrastStudy/Image_Based_Volumes/Post-CABG/CABG10B/Step5_Projected_Volume_descending_aorta",  dest="InputFolderName")
+    parser2.add_argument("-HeartBeat", "--HeartBeat", type=float, required=False, dest="HeartBeat", default=75)
     parser2.add_argument("-delay", "--delay", type=int, required=False, dest="delay", default=3, help="bolus time delay before upslope rises")
     parser2.add_argument("-peak", "--peak", type=int, required=False, dest="peak",default=7, help="the number of image on witch the upslope reaches its peak")
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     ActualSignal = ExtractTemporalData(t1, CenterLineContrastDict_complete)
     
     plt.figure(figsize=(13,7))
-    plt.scatter(t1.reshape(-1,1), ActualSignal.reshape(-1,1), marker='o', label='Actual Signal Before Interpolation')
+    plt.scatter(t1.reshape(-1,1), ActualSignal.reshape(-1,1), marker='o', label='Actual Signal')
     plt.scatter(t2.reshape(-1,1), SparseSignal.reshape(-1,1), marker = '*', label = 'Sparse Signal Before Interpolation')
     plt.scatter(new_t.reshape(-1,1), interpolateSignal.reshape(-1,1), marker='+', label= 'Sparse Signal After Interpolation')
     plt.title('Temporal Attenuation Curve')
