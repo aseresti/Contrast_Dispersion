@@ -54,7 +54,7 @@ if __name__=="__main__":
 
 	parser.add_argument('-InputFileName1', '--InputFileName1', type=str, required=True, dest="InputFileName1",help="File name of the source data")
         
-	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False, dest="scalars",help="The array name that contains the image intensitites.")
+	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False, default="scalars", dest="ArrayName",help="The array name that contains the image intensitites.")
         
 	#Input filename of the coronary segmented surface.
 	parser.add_argument('-InputFileName2', '--InputMesh', type=str, required=True, dest="InputFileName2",help="File name of the input mesh/surface on which to project from the source data")
@@ -62,6 +62,6 @@ if __name__=="__main__":
 	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="File name in which to store the image intensitites.")
         
 	args=parser.parse_args()
-       
+    
 	ImageAnalysisProjectImageToMesh(args).Main()
 
