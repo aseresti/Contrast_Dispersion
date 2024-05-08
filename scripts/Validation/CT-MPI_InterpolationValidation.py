@@ -42,8 +42,6 @@ def ImplementPipeline(data):
             Clip1 = data.AppendVolumes(Clip1, Clip2)
             
         count+=1
-        if count == data.Args.peak:
-            PeakCylinderClip = Clip1
             
         CenterLineContrastDict[volume[0]] = CenterLineContrast
         
